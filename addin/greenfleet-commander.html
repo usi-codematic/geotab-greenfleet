@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenFleet Commander</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet MarkerCluster -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Day.js -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
+    <!-- DOMPurify for safe HTML rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+    <style>
+        /* ============================================================
+           GreenFleet Commander — Zenith Design System Styles
+           Prefixed with .gfc- to avoid MyGeotab iframe conflicts
+           ============================================================ */
+
+        :root {
+            --gfc-primary: #0078D4;
+            --gfc-primary-dark: #005A9E;
+            --gfc-primary-light: #DEECF9;
+            --gfc-green: #107C10;
+            --gfc-green-light: #DFF6DD;
+            --gfc-green-dark: #054B05;
+            --gfc-warning: #FF8C00;
+            --gfc-warning-light: #FFF4CE;
+            --gfc-error: #D13438;
+            --gfc-error-light: #FDE7E9;
+            --gfc-success: #107C10;
+            --gfc-text: #323130;
+            --gfc-text-secondary: #605E5C;
+            --gfc-border: #EDEBE9;
+            --gfc-bg: #FAF9F8;
+            --gfc-white: #FFFFFF;
+            --gfc-xs: 4px;
+            --gfc-sm: 8px;
+            --gfc-md: 16px;
+            --gfc-lg: 24px;
+            --gfc-xl: 32px;
+            --gfc-font: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            --gfc-radius: 6px;
+            --gfc-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            --gfc-shadow-lg: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        * { box-sizing: border-box; }
+
+        .gfc-app {
+            font-family: var(--gfc-font);
+            color: var(--gfc-text);
+            background: var(--gfc-bg);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+
+        .gfc-header {
+            background: linear-gradient(135deg, var(--gfc-green-dark) 0%, var(--gfc-green) 50%, var(--gfc-primary) 100%);
+            color: white;
+            padding: var(--gfc-md) var(--gfc-lg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--gfc-shadow-lg);
+        }
+        .gfc-header-left { display: flex; align-items: center; gap: var(--gfc-sm); }
+        .gfc-header h1 { font-size: 20px; font-weight: 600; margin: 0; }
+        .gfc-header-subtitle { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+        .gfc-header-right { font-size: 13px; opacity: 0.9; display: flex; align-items: center; gap: var(--gfc-sm); }
+        .gfc-logo { width: 32px; height: 32px; }
+
+        .gfc-tabs {
+            display: flex;
+            background: var(--gfc-white);
+            border-bottom: 2px solid var(--gfc-border);
+            padding: 0 var(--gfc-md);
+            overflow-x: auto;
+        }
+        .gfc-tab {
+            padding: 12px var(--gfc-md);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gfc-text-secondary);
+            cursor: pointer;
+            border: none;
+            background: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .gfc-tab:hover { color: var(--gfc-primary); background: var(--gfc-primary-light); }
+        .gfc-tab.active { color: var(--gfc-green); border-bottom-color: var(--gfc-green); font-weight: 600; }
+        .gfc-tab-icon { font-size: 16px; }
+
+        .gfc-content { padding: var(--gfc-lg); max-width: 1400px; margin: 0 auto; }
+        .gfc-tab-panel { display: none; }
+        .gfc-tab-panel.active { display: block; }
+
+        .gfc-card {
+            background: var(--gfc-white);
+            border-radius: var(--gfc-radius);
+            box-shadow: var(--gfc-shadow);
+            padding: var(--gfc-lg);
+            margin-bottom: var(--gfc-md);
+            border: 1px solid var(--gfc-border);
+        }
+        .gfc-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gfc-md); }
+        .gfc-card-title { font-size: 16px; font-weight: 600; color: var(--gfc-text); }
+
+        .gfc-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--gfc-md);
+            margin-bottom: var(--gfc-lg);
+        }
+        .gfc-summary-card {
+            background: var(--gfc-white);
+            border-radius: var(--gfc-radius);
+            box-shadow: var(--gfc-shadow);
+            padding: var(--gfc-lg);
+            border-left: 4px solid var(--gfc-green);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .gfc-summary-card:hover { transform: translateY(-2px); box-shadow: var(--gfc-shadow-lg); }
+        .gfc-summary-card.blue { border-left-color: var(--gfc-primary); }
+        .gfc-summary-card.orange { border-left-color: var(--gfc-warning); }
+        .gfc-summary-card.red { border-left-color: var(--gfc-error); }
+        .gfc-summary-label { font-size: 12px; color: var(--gfc-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--gfc-xs); }
+        .gfc-summary-value { font-size: 28px; font-weight: 700; color: var(--gfc-text); }
+        .gfc-summary-unit { font-size: 14px; font-weight: 400; color: var(--gfc-text-secondary); }
+
+        .gfc-chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gfc-md); margin-bottom: var(--gfc-lg); }
+        .gfc-chart-container { position: relative; height: 300px; }
+
+        .gfc-table-wrapper { overflow-x: auto; }
+        .gfc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .gfc-table th {
+            background: var(--gfc-bg); padding: 10px 12px; text-align: left; font-weight: 600;
+            color: var(--gfc-text-secondary); border-bottom: 2px solid var(--gfc-border);
+            cursor: pointer; user-select: none; white-space: nowrap;
+        }
+        .gfc-table th:hover { background: var(--gfc-primary-light); }
+        .gfc-table td { padding: 10px 12px; border-bottom: 1px solid var(--gfc-border); }
+        .gfc-table tr:hover { background: var(--gfc-bg); }
+
+        .gfc-score {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 42px; height: 28px; border-radius: 14px; font-weight: 700; font-size: 13px; color: white;
+        }
+        .gfc-score.high { background: var(--gfc-green); }
+        .gfc-score.medium { background: var(--gfc-warning); }
+        .gfc-score.low { background: var(--gfc-error); }
+
+        .gfc-status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .gfc-status.ev-ready { background: var(--gfc-green-light); color: var(--gfc-green-dark); }
+        .gfc-status.borderline { background: var(--gfc-warning-light); color: #7A4F01; }
+        .gfc-status.not-ready { background: var(--gfc-error-light); color: #A4262C; }
+
+        .gfc-simulator-controls { background: var(--gfc-bg); border-radius: var(--gfc-radius); padding: var(--gfc-lg); margin-bottom: var(--gfc-lg); }
+        .gfc-slider-row { display: flex; align-items: center; gap: var(--gfc-md); }
+        .gfc-slider { flex: 1; -webkit-appearance: none; height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--gfc-green), var(--gfc-primary)); outline: none; }
+        .gfc-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--gfc-green); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+        .gfc-slider-label { font-size: 14px; font-weight: 600; min-width: 120px; }
+        .gfc-sim-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--gfc-md); margin-top: var(--gfc-lg); }
+        .gfc-sim-metric { text-align: center; padding: var(--gfc-md); background: var(--gfc-white); border-radius: var(--gfc-radius); box-shadow: var(--gfc-shadow); }
+        .gfc-sim-metric-value { font-size: 24px; font-weight: 700; color: var(--gfc-green); }
+        .gfc-sim-metric-label { font-size: 12px; color: var(--gfc-text-secondary); margin-top: var(--gfc-xs); }
+        .gfc-doughnut-grid { display: grid; grid-template-columns: 1fr 80px 1fr; align-items: center; gap: var(--gfc-md); margin: var(--gfc-lg) 0; }
+        .gfc-doughnut-container { position: relative; height: 220px; }
+        .gfc-arrow { text-align: center; font-size: 32px; color: var(--gfc-green); }
+        .gfc-param-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--gfc-md); margin-top: var(--gfc-md); }
+        .gfc-param-label { font-size: 12px; color: var(--gfc-text-secondary); margin-bottom: var(--gfc-xs); }
+        .gfc-param-input { width: 100%; padding: 8px 12px; border: 1px solid var(--gfc-border); border-radius: var(--gfc-radius); font-size: 14px; font-family: var(--gfc-font); }
+        .gfc-param-input:focus { outline: none; border-color: var(--gfc-primary); box-shadow: 0 0 0 2px var(--gfc-primary-light); }
+
+        .gfc-chat { display: flex; flex-direction: column; height: 500px; }
+        .gfc-chat-quick { display: flex; flex-wrap: wrap; gap: var(--gfc-sm); padding: var(--gfc-md); border-bottom: 1px solid var(--gfc-border); }
+        .gfc-quick-btn { padding: 6px 14px; border: 1px solid var(--gfc-primary); border-radius: 16px; background: var(--gfc-white); color: var(--gfc-primary); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .gfc-quick-btn:hover { background: var(--gfc-primary); color: white; }
+        .gfc-chat-messages { flex: 1; overflow-y: auto; padding: var(--gfc-md); }
+        .gfc-msg { margin-bottom: var(--gfc-md); max-width: 85%; }
+        .gfc-msg.user { margin-left: auto; background: var(--gfc-primary); color: white; padding: 10px 14px; border-radius: 16px 16px 4px 16px; font-size: 13px; }
+        .gfc-msg.ace { background: var(--gfc-green-light); padding: 12px 16px; border-radius: 16px 16px 16px 4px; font-size: 13px; }
+        .gfc-msg.ace .gfc-msg-label { font-weight: 600; color: var(--gfc-green-dark); margin-bottom: var(--gfc-xs); font-size: 11px; }
+        .gfc-msg.system { text-align: center; color: var(--gfc-text-secondary); font-size: 12px; font-style: italic; }
+        .gfc-chat-input { display: flex; gap: var(--gfc-sm); padding: var(--gfc-md); border-top: 1px solid var(--gfc-border); }
+        .gfc-chat-input input { flex: 1; padding: 10px 14px; border: 1px solid var(--gfc-border); border-radius: 20px; font-size: 13px; font-family: var(--gfc-font); outline: none; }
+        .gfc-chat-input input:focus { border-color: var(--gfc-primary); box-shadow: 0 0 0 2px var(--gfc-primary-light); }
+        .gfc-chat-input button { padding: 10px 20px; background: var(--gfc-green); color: white; border: none; border-radius: 20px; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .gfc-chat-input button:hover { background: var(--gfc-green-dark); }
+        .gfc-chat-input button:disabled { background: var(--gfc-border); cursor: not-allowed; }
+
+        .gfc-loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: var(--gfc-text-secondary); gap: var(--gfc-sm); }
+        .gfc-spinner { width: 20px; height: 20px; border: 3px solid var(--gfc-border); border-top-color: var(--gfc-green); border-radius: 50%; animation: gfc-spin 0.8s linear infinite; }
+        @keyframes gfc-spin { to { transform: rotate(360deg); } }
+        .gfc-pulse { display: inline-block; animation: gfc-pulse 1.5s ease-in-out infinite; }
+        @keyframes gfc-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        .gfc-map-container { height: 500px; border-radius: var(--gfc-radius); overflow: hidden; border: 1px solid var(--gfc-border); }
+
+        .gfc-leaderboard-item { display: flex; align-items: center; padding: 12px var(--gfc-md); border-bottom: 1px solid var(--gfc-border); gap: var(--gfc-md); }
+        .gfc-leaderboard-item:hover { background: var(--gfc-bg); }
+        .gfc-rank { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+        .gfc-rank.gold { background: #FFD700; color: #5D4200; }
+        .gfc-rank.silver { background: #C0C0C0; color: #333; }
+        .gfc-rank.bronze { background: #CD7F32; color: #fff; }
+        .gfc-rank.normal { background: var(--gfc-bg); color: var(--gfc-text-secondary); }
+        .gfc-leaderboard-info { flex: 1; }
+        .gfc-leaderboard-name { font-weight: 600; font-size: 14px; }
+        .gfc-leaderboard-detail { font-size: 12px; color: var(--gfc-text-secondary); }
+        .gfc-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-left: 6px; }
+        .gfc-badge.champion { background: #FFD700; color: #5D4200; }
+        .gfc-badge.improved { background: var(--gfc-green-light); color: var(--gfc-green-dark); }
+        .gfc-leaderboard-score { font-size: 20px; font-weight: 700; }
+        .gfc-leaderboard-bar { width: 120px; height: 8px; background: var(--gfc-border); border-radius: 4px; overflow: hidden; }
+        .gfc-leaderboard-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+
+        .gfc-btn { padding: 8px 20px; border: none; border-radius: var(--gfc-radius); font-weight: 600; font-size: 13px; cursor: pointer; font-family: var(--gfc-font); transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .gfc-btn-primary { background: var(--gfc-green); color: white; }
+        .gfc-btn-primary:hover { background: var(--gfc-green-dark); }
+        .gfc-btn-secondary { background: var(--gfc-white); color: var(--gfc-primary); border: 1px solid var(--gfc-primary); }
+        .gfc-btn-secondary:hover { background: var(--gfc-primary-light); }
+
+        .gfc-toggle-group { display: inline-flex; border: 1px solid var(--gfc-border); border-radius: var(--gfc-radius); overflow: hidden; }
+        .gfc-toggle-btn { padding: 6px 16px; border: none; background: var(--gfc-white); font-size: 12px; cursor: pointer; font-family: var(--gfc-font); color: var(--gfc-text-secondary); }
+        .gfc-toggle-btn.active { background: var(--gfc-green); color: white; font-weight: 600; }
+
+        .gfc-report-preview { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--gfc-md); }
+        .gfc-report-section { padding: var(--gfc-md); border: 1px dashed var(--gfc-border); border-radius: var(--gfc-radius); text-align: center; }
+        .gfc-report-section h4 { margin: 0 0 var(--gfc-sm); font-size: 14px; color: var(--gfc-text); }
+        .gfc-report-section p { margin: 0; font-size: 12px; color: var(--gfc-text-secondary); }
+
+        .gfc-ace-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: var(--gfc-sm); }
+        .gfc-ace-table th { background: var(--gfc-green-dark); color: white; padding: 6px 8px; text-align: left; font-size: 11px; }
+        .gfc-ace-table td { padding: 5px 8px; border-bottom: 1px solid var(--gfc-border); }
+
+        .gfc-breakdown { display: none; }
+        .gfc-breakdown.open { display: table-row; }
+        .gfc-breakdown-bar { display: flex; align-items: center; gap: var(--gfc-sm); margin-bottom: var(--gfc-sm); }
+        .gfc-breakdown-label { font-size: 12px; width: 140px; color: var(--gfc-text-secondary); }
+        .gfc-breakdown-track { flex: 1; height: 8px; background: var(--gfc-border); border-radius: 4px; overflow: hidden; }
+        .gfc-breakdown-fill { height: 100%; border-radius: 4px; background: var(--gfc-green); transition: width 0.5s; }
+        .gfc-breakdown-pts { font-size: 12px; font-weight: 600; width: 40px; text-align: right; }
+
+        .gfc-empty { text-align: center; padding: 60px var(--gfc-lg); color: var(--gfc-text-secondary); }
+        .gfc-empty-icon { font-size: 48px; margin-bottom: var(--gfc-md); }
+
+        @media (max-width: 900px) {
+            .gfc-chart-grid { grid-template-columns: 1fr; }
+            .gfc-doughnut-grid { grid-template-columns: 1fr; }
+            .gfc-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+<div class="gfc-app" id="gfc-app">
+    <!-- Header -->
+    <div class="gfc-header">
+        <div class="gfc-header-left">
+            <svg class="gfc-logo" viewBox="0 0 24 24"><defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#fff"/><stop offset="100%" style="stop-color:#8FE88F"/></linearGradient></defs><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22.23C7.68 17.37 9.79 12.76 17 11V14L22 8L17 2V5C12 5 8.5 7.5 6 11C9 9 12 8.5 17 8Z" fill="url(#lg)"/><path d="M13 6L10 12H13L11 18L16 11H13L15 6H13Z" fill="#FFD700" opacity="0.9"/></svg>
+            <div>
+                <h1>GreenFleet Commander</h1>
+                <div class="gfc-header-subtitle">AI-Powered Fleet Sustainability Intelligence</div>
+            </div>
+        </div>
+        <div class="gfc-header-right">
+            <span id="gfc-fleet-name">Loading fleet...</span>
+            <span>|</span>
+            <span id="gfc-vehicle-count">-- vehicles</span>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="gfc-tabs" id="gfc-tabs">
+        <button class="gfc-tab active" data-tab="dashboard"><span class="gfc-tab-icon">&#x1F4CA;</span> Dashboard</button>
+        <button class="gfc-tab" data-tab="simulator"><span class="gfc-tab-icon">&#x26A1;</span> Simulator</button>
+        <button class="gfc-tab" data-tab="leaderboard"><span class="gfc-tab-icon">&#x1F3C6;</span> Leaderboard</button>
+        <button class="gfc-tab" data-tab="assistant"><span class="gfc-tab-icon">&#x1F916;</span> AI Assistant</button>
+        <button class="gfc-tab" data-tab="map"><span class="gfc-tab-icon">&#x1F5FA;</span> Fleet Map</button>
+        <button class="gfc-tab" data-tab="reports"><span class="gfc-tab-icon">&#x1F4C4;</span> Reports</button>
+    </div>
+
+    <!-- Content -->
+    <div class="gfc-content">
+        <!-- DASHBOARD -->
+        <div class="gfc-tab-panel active" id="panel-dashboard">
+            <div class="gfc-summary-grid">
+                <div class="gfc-summary-card">
+                    <div class="gfc-summary-label">Total CO2 Emissions</div>
+                    <div class="gfc-summary-value" id="stat-co2"><span class="gfc-pulse">--</span></div>
+                    <div class="gfc-summary-unit">tonnes this month</div>
+                </div>
+                <div class="gfc-summary-card blue">
+                    <div class="gfc-summary-label">Total Distance</div>
+                    <div class="gfc-summary-value" id="stat-distance"><span class="gfc-pulse">--</span></div>
+                    <div class="gfc-summary-unit">km this month</div>
+                </div>
+                <div class="gfc-summary-card">
+                    <div class="gfc-summary-label">Fleet Eco-Score</div>
+                    <div class="gfc-summary-value" id="stat-ecoscore"><span class="gfc-pulse">--</span></div>
+                    <div class="gfc-summary-unit">out of 100</div>
+                </div>
+                <div class="gfc-summary-card orange">
+                    <div class="gfc-summary-label">Active Vehicles</div>
+                    <div class="gfc-summary-value" id="stat-vehicles"><span class="gfc-pulse">--</span></div>
+                    <div class="gfc-summary-unit">in fleet</div>
+                </div>
+            </div>
+            <div class="gfc-chart-grid">
+                <div class="gfc-card">
+                    <div class="gfc-card-header"><div class="gfc-card-title">Emissions Trend (Last 30 Days)</div></div>
+                    <div class="gfc-chart-container"><canvas id="chart-emissions-trend"></canvas></div>
+                </div>
+                <div class="gfc-card">
+                    <div class="gfc-card-header"><div class="gfc-card-title">Top 10 Fuel Consumers</div></div>
+                    <div class="gfc-chart-container"><canvas id="chart-fuel-consumers"></canvas></div>
+                </div>
+            </div>
+            <div class="gfc-card">
+                <div class="gfc-card-header">
+                    <div class="gfc-card-title">EV Readiness Rankings</div>
+                    <div>
+                        <span class="gfc-status ev-ready">EV Ready (75+)</span>
+                        <span class="gfc-status borderline">Borderline (40-74)</span>
+                        <span class="gfc-status not-ready">Not Ready (&lt;40)</span>
+                    </div>
+                </div>
+                <div class="gfc-table-wrapper">
+                    <table class="gfc-table" id="ev-table">
+                        <thead><tr>
+                            <th data-sort="name">Vehicle</th>
+                            <th data-sort="score">EV Score</th>
+                            <th data-sort="avgDaily">Avg Daily km</th>
+                            <th data-sort="idlePct">Idle %</th>
+                            <th data-sort="trips">Trips/Day</th>
+                            <th>Status</th>
+                        </tr></thead>
+                        <tbody id="ev-table-body"><tr><td colspan="6" class="gfc-loading"><div class="gfc-spinner"></div> Loading vehicle data...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIMULATOR -->
+        <div class="gfc-tab-panel" id="panel-simulator">
+            <div class="gfc-card">
+                <div class="gfc-card-title">Fleet Electrification Simulator</div>
+                <p style="color: var(--gfc-text-secondary); font-size: 13px; margin: var(--gfc-sm) 0 var(--gfc-md);">Drag the slider to see the impact of converting your highest-scored vehicles to electric.</p>
+                <div class="gfc-simulator-controls">
+                    <div class="gfc-slider-row">
+                        <span style="font-size: 13px;">Electrify</span>
+                        <input type="range" class="gfc-slider" id="sim-slider" min="0" max="50" value="0">
+                        <span class="gfc-slider-label" id="sim-slider-label">0 / 0 vehicles</span>
+                    </div>
+                    <div class="gfc-param-grid">
+                        <div><div class="gfc-param-label">Fuel Cost ($/L)</div><input type="number" class="gfc-param-input" id="sim-fuel-cost" value="1.65" step="0.05" min="0"></div>
+                        <div><div class="gfc-param-label">Electricity Cost ($/kWh)</div><input type="number" class="gfc-param-input" id="sim-elec-cost" value="0.13" step="0.01" min="0"></div>
+                        <div><div class="gfc-param-label">Carbon Credit ($/tonne CO2)</div><input type="number" class="gfc-param-input" id="sim-carbon-price" value="50" step="5" min="0"></div>
+                    </div>
+                </div>
+                <div class="gfc-doughnut-grid">
+                    <div><h4 style="text-align:center;margin-bottom:var(--gfc-sm)">Current Fleet</h4><div class="gfc-doughnut-container"><canvas id="chart-sim-before"></canvas></div></div>
+                    <div class="gfc-arrow">&#x27A1;</div>
+                    <div><h4 style="text-align:center;margin-bottom:var(--gfc-sm)">After Electrification</h4><div class="gfc-doughnut-container"><canvas id="chart-sim-after"></canvas></div></div>
+                </div>
+                <div class="gfc-sim-results">
+                    <div class="gfc-sim-metric"><div class="gfc-sim-metric-value" id="sim-co2-saved">0</div><div class="gfc-sim-metric-label">Tonnes CO2 Saved (5yr)</div></div>
+                    <div class="gfc-sim-metric"><div class="gfc-sim-metric-value" id="sim-fuel-saved">$0</div><div class="gfc-sim-metric-label">Fuel Savings (5yr)</div></div>
+                    <div class="gfc-sim-metric"><div class="gfc-sim-metric-value" id="sim-carbon-credits">$0</div><div class="gfc-sim-metric-label">Carbon Credit Value (5yr)</div></div>
+                    <div class="gfc-sim-metric"><div class="gfc-sim-metric-value" id="sim-tco-savings">$0</div><div class="gfc-sim-metric-label">Net TCO Savings (5yr)</div></div>
+                </div>
+            </div>
+            <div class="gfc-card">
+                <div class="gfc-card-title">Recommended Electrification Order</div>
+                <div class="gfc-table-wrapper">
+                    <table class="gfc-table"><thead><tr><th>#</th><th>Vehicle</th><th>EV Score</th><th>Est. Annual Fuel Cost</th><th>Est. Annual EV Cost</th><th>Annual Savings</th></tr></thead>
+                    <tbody id="sim-order-body"><tr><td colspan="6" class="gfc-loading"><div class="gfc-spinner"></div> Loading...</td></tr></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEADERBOARD -->
+        <div class="gfc-tab-panel" id="panel-leaderboard">
+            <div class="gfc-card">
+                <div class="gfc-card-header">
+                    <div class="gfc-card-title">Eco-Driving Leaderboard</div>
+                    <div class="gfc-toggle-group">
+                        <button class="gfc-toggle-btn active" data-period="week">This Week</button>
+                        <button class="gfc-toggle-btn" data-period="month">This Month</button>
+                    </div>
+                </div>
+                <div id="leaderboard-list"><div class="gfc-loading"><div class="gfc-spinner"></div> Loading driver scores...</div></div>
+            </div>
+        </div>
+
+        <!-- AI ASSISTANT -->
+        <div class="gfc-tab-panel" id="panel-assistant">
+            <div class="gfc-card" style="padding:0;overflow:hidden;">
+                <div class="gfc-chat">
+                    <div class="gfc-chat-quick">
+                        <button class="gfc-quick-btn" data-query="Which vehicles should I replace with EVs first and why?">EV Recommendations</button>
+                        <button class="gfc-quick-btn" data-query="What are the top 5 vehicles by fuel consumption this month?">Top Fuel Consumers</button>
+                        <button class="gfc-quick-btn" data-query="Show me safety incidents and exception events from the past week">Safety Incidents</button>
+                        <button class="gfc-quick-btn" data-query="What is the fleet's overall efficiency trend this month compared to last month?">Efficiency Trend</button>
+                    </div>
+                    <div class="gfc-chat-messages" id="chat-messages">
+                        <div class="gfc-msg system">Ask Geotab Ace any question about your fleet's sustainability, efficiency, or safety.</div>
+                    </div>
+                    <div class="gfc-chat-input">
+                        <input type="text" id="chat-input" placeholder="Ask about your fleet's sustainability..." />
+                        <button id="chat-send" onclick="GFC.sendAceQuery()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAP -->
+        <div class="gfc-tab-panel" id="panel-map">
+            <div class="gfc-card">
+                <div class="gfc-card-header">
+                    <div class="gfc-card-title">Fleet Map - Vehicles by EV Readiness</div>
+                    <div>
+                        <span class="gfc-status ev-ready">EV Ready</span>
+                        <span class="gfc-status borderline">Borderline</span>
+                        <span class="gfc-status not-ready">Not Ready</span>
+                    </div>
+                </div>
+                <div class="gfc-map-container" id="gfc-map"></div>
+            </div>
+        </div>
+
+        <!-- REPORTS -->
+        <div class="gfc-tab-panel" id="panel-reports">
+            <div class="gfc-card">
+                <div class="gfc-card-header">
+                    <div class="gfc-card-title">Sustainability Report Generator</div>
+                    <button class="gfc-btn gfc-btn-primary" onclick="GFC.generateReport()">Download PDF Report</button>
+                </div>
+                <p style="color:var(--gfc-text-secondary);font-size:13px;margin-bottom:var(--gfc-lg)">Generate a comprehensive sustainability report including carbon footprint analysis, EV readiness rankings, electrification roadmap, and eco-driving highlights.</p>
+                <div class="gfc-report-preview">
+                    <div class="gfc-report-section"><h4>Executive Summary</h4><p>Fleet overview, key metrics, sustainability grade</p></div>
+                    <div class="gfc-report-section"><h4>Carbon Footprint</h4><p>Emissions breakdown, trend analysis, benchmarks</p></div>
+                    <div class="gfc-report-section"><h4>EV Readiness</h4><p>Vehicle rankings, scoring methodology, recommendations</p></div>
+                    <div class="gfc-report-section"><h4>Electrification Roadmap</h4><p>Phase plan, financial projections, timeline</p></div>
+                    <div class="gfc-report-section"><h4>Eco-Driving</h4><p>Driver rankings, behavior trends, coaching opportunities</p></div>
+                    <div class="gfc-report-section"><h4>Recommendations</h4><p>Priority actions, estimated impact, next steps</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * GreenFleet Commander — Core Application Logic
+ * All dynamic content is sanitized via escapeHtml() or DOMPurify before DOM insertion.
+ */
+(function() {
+    'use strict';
+
+    var EMISSION_FACTOR = 2.50;
+    var AVG_FUEL_L_PER_KM = 0.12;
+    var EV_EFFICIENCY_KWH_PER_KM = 0.2;
+    var EV_MAINT_SAVINGS_YR = 1200;
+    var CHART_COLORS = ['#107C10','#0078D4','#FF8C00','#D13438','#8764B8','#00B7C3','#767676','#CA5010','#498205','#005B70'];
+
+    var state = { api: null, devices: [], trips: [], exceptionEvents: [], vehicleData: [], driverScores: [], charts: {}, leafletMap: null, aceChat: null, aceQuerying: false };
+
+    // --- Utilities ---
+    function escapeHtml(str) { var d = document.createElement('div'); d.textContent = String(str); return d.innerHTML; }
+    function sanitizeHtml(html) { return typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(html) : escapeHtml(html); }
+    function numberFmt(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+    function truncate(s, n) { return s.length > n ? s.substring(0, n) + '...' : s; }
+    function delay(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+    function parseDuration(dur) {
+        if (!dur) return 0;
+        if (typeof dur === 'number') return dur;
+        var m = String(dur).match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/);
+        if (!m) return 0;
+        return ((parseInt(m[1])||0)*3600 + (parseInt(m[2])||0)*60 + (parseFloat(m[3])||0))*1000;
+    }
+    function coeffVar(arr) {
+        if (arr.length < 2) return 0;
+        var mean = arr.reduce(function(s,v){return s+v;},0)/arr.length;
+        if (mean === 0) return 0;
+        var v = arr.reduce(function(s,x){return s+Math.pow(x-mean,2);},0)/arr.length;
+        return Math.sqrt(v)/mean;
+    }
+    function padR(s,n) { while(s.length<n) s+=' '; return s; }
+
+    // --- API ---
+    function apiCall(method, params) {
+        return new Promise(function(resolve, reject) {
+            if (!state.api) { reject(new Error('API not initialized')); return; }
+            state.api.call(method, params, resolve, function(e) { reject(new Error(e&&e.message||e||'API error')); });
+        });
+    }
+    function apiMulti(calls) {
+        return new Promise(function(resolve, reject) {
+            if (!state.api) { reject(new Error('API not initialized')); return; }
+            state.api.multiCall(calls, resolve, function(e) { reject(new Error(e&&e.message||e||'MultiCall error')); });
+        });
+    }
+
+    // --- Data Loading ---
+    async function loadAllData() {
+        var now = new Date();
+        var d30 = new Date(now.getTime()-30*86400000);
+        var d7 = new Date(now.getTime()-7*86400000);
+        try {
+            var r = await apiMulti([
+                ['Get',{typeName:'Device'}],
+                ['Get',{typeName:'Trip',search:{fromDate:d30.toISOString(),toDate:now.toISOString()}}],
+                ['Get',{typeName:'ExceptionEvent',search:{fromDate:d7.toISOString(),toDate:now.toISOString()}}]
+            ]);
+            state.devices = r[0]||[];
+            state.trips = r[1]||[];
+            state.exceptionEvents = r[2]||[];
+            document.getElementById('gfc-fleet-name').textContent = 'Demo Fleet';
+            document.getElementById('gfc-vehicle-count').textContent = state.devices.length + ' vehicles';
+            processVehicleData();
+            processDriverScores();
+            renderDashboard();
+            renderEVTable();
+            renderSimulator();
+            renderLeaderboard();
+        } catch(e) {
+            console.error('GFC load error:', e);
+            document.getElementById('gfc-fleet-name').textContent = 'Error loading data';
+        }
+    }
+
+    function processVehicleData() {
+        var dt = {};
+        state.trips.forEach(function(t) {
+            var id = t.device?t.device.id:null; if(!id) return;
+            if(!dt[id]) dt[id]=[];
+            dt[id].push(t);
+        });
+        state.vehicleData = state.devices.map(function(dev) {
+            var trips = dt[dev.id]||[];
+            var totalM=0, idleMs=0, driveMs=0, daily={}, tripDists=[];
+            trips.forEach(function(t) {
+                var d=t.distance||0; totalM+=d;
+                idleMs+=parseDuration(t.idlingDuration);
+                driveMs+=parseDuration(t.drivingDuration);
+                var dk=(t.start||t.startTime||'').substring(0,10);
+                if(dk) daily[dk]=(daily[dk]||0)+d/1000;
+                tripDists.push(d/1000);
+            });
+            var km=totalM/1000, days=Object.keys(daily), nd=Math.max(days.length,1);
+            var avgD=km/nd, maxD=days.length>0?Math.max.apply(null,days.map(function(d){return daily[d];})):0;
+            var totalMs=idleMs+driveMs, idlePct=totalMs>0?(idleMs/totalMs)*100:0;
+            var tpd=trips.length/nd;
+            var cv=coeffVar(days.map(function(d){return daily[d];}));
+            var ev=calcEVScore(avgD,maxD,cv,idlePct/100,0.7,tripDists);
+            var fuelL=km*AVG_FUEL_L_PER_KM;
+            return {
+                id:dev.id, name:dev.name||'Unknown', trips:trips.length,
+                totalDistanceKm:km, avgDailyKm:avgD, maxDailyKm:maxD, idlePct:idlePct,
+                tripsPerDay:tpd, estFuelL:fuelL, estCO2Kg:fuelL*EMISSION_FACTOR,
+                evScore:ev, scoreBreakdown:ev._bd
+            };
+        });
+        state.vehicleData.sort(function(a,b){return b.evScore.total-a.evScore.total;});
+    }
+
+    function calcEVScore(avgD,maxD,cv,idleR,retRate,tripDists) {
+        var ds = avgD<=100?30:avgD<=150?25:avgD<=200?20:avgD<=250?15:avgD<=300?10:avgD<=400?5:0;
+        var ps = Math.round(Math.max(0,(1-Math.min(cv,1)))*20);
+        var is = Math.round(Math.min(idleR,0.5)/0.5*20);
+        var cs = Math.round(retRate*20);
+        var st = tripDists.filter(function(d){return d<=100;}).length;
+        var ts = tripDists.length>0?Math.round((st/tripDists.length)*10):5;
+        var total = Math.min(100,ds+ps+is+cs+ts);
+        return {total:total, _bd:{
+            distance:{score:ds,max:30,label:'Daily Distance'},
+            predictability:{score:ps,max:20,label:'Predictability'},
+            idle:{score:is,max:20,label:'Idle Time Benefit'},
+            charging:{score:cs,max:20,label:'Charging Opportunity'},
+            tripCompat:{score:ts,max:10,label:'Trip Compatibility'}
+        }};
+    }
+
+    function processDriverScores() {
+        var de={};
+        state.exceptionEvents.forEach(function(ev) {
+            var id=ev.device?ev.device.id:null; if(!id) return;
+            if(!de[id]) de[id]=[];
+            de[id].push(ev);
+        });
+        state.driverScores = state.devices.map(function(d) {
+            var evts=de[d.id]||[];
+            return {deviceId:d.id, name:d.name||'Vehicle '+d.id, events:evts.length, score:Math.max(0,100-evts.length*3)};
+        });
+        state.driverScores.sort(function(a,b){return b.score-a.score;});
+    }
+
+    // --- Dashboard ---
+    function renderDashboard() {
+        var co2=0,dist=0;
+        state.vehicleData.forEach(function(v){co2+=v.estCO2Kg;dist+=v.totalDistanceKm;});
+        var avg = state.vehicleData.length>0?Math.round(state.vehicleData.reduce(function(s,v){return s+v.evScore.total;},0)/state.vehicleData.length):0;
+        document.getElementById('stat-co2').textContent = (co2/1000).toFixed(1);
+        document.getElementById('stat-distance').textContent = numberFmt(Math.round(dist));
+        document.getElementById('stat-ecoscore').textContent = avg;
+        document.getElementById('stat-vehicles').textContent = state.devices.length;
+        renderTrendChart();
+        renderFuelChart();
+    }
+
+    function renderTrendChart() {
+        var daily={};
+        state.trips.forEach(function(t) {
+            var dk=(t.start||t.startTime||'').substring(0,10); if(!dk) return;
+            var km=(t.distance||0)/1000;
+            daily[dk]=(daily[dk]||0)+km*AVG_FUEL_L_PER_KM*EMISSION_FACTOR;
+        });
+        var keys=Object.keys(daily).sort();
+        if(state.charts.trend) state.charts.trend.destroy();
+        state.charts.trend = new Chart(document.getElementById('chart-emissions-trend'),{
+            type:'line',
+            data:{labels:keys.map(function(d){return d.substring(5);}),datasets:[{label:'CO2 (kg)',data:keys.map(function(d){return Math.round(daily[d]);}),borderColor:'#107C10',backgroundColor:'rgba(16,124,16,0.1)',fill:true,tension:0.3,pointRadius:2}]},
+            options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#EDEBE9'}},y:{grid:{color:'#EDEBE9'}}}}
+        });
+    }
+
+    function renderFuelChart() {
+        var s=state.vehicleData.slice().sort(function(a,b){return b.estFuelL-a.estFuelL;}).slice(0,10);
+        if(state.charts.fuel) state.charts.fuel.destroy();
+        state.charts.fuel = new Chart(document.getElementById('chart-fuel-consumers'),{
+            type:'bar',
+            data:{labels:s.map(function(v){return truncate(v.name,15);}),datasets:[{label:'Est. Fuel (L)',data:s.map(function(v){return Math.round(v.estFuelL);}),backgroundColor:CHART_COLORS,borderRadius:4}]},
+            options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#EDEBE9'}},y:{grid:{color:'#EDEBE9'}}}}
+        });
+    }
+
+    // --- EV Table ---
+    function renderEVTable(sortKey, sortDir) {
+        var data=state.vehicleData.slice();
+        if(sortKey) data.sort(function(a,b){
+            var va=sortKey==='score'?a.evScore.total:a[sortKey], vb=sortKey==='score'?b.evScore.total:b[sortKey];
+            if(typeof va==='string') return sortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+            return sortDir==='asc'?va-vb:vb-va;
+        });
+        var tbody=document.getElementById('ev-table-body');
+        if(!data.length){tbody.textContent=''; var tr=document.createElement('tr'); var td=document.createElement('td'); td.colSpan=6; td.textContent='No vehicle data available'; tbody.appendChild(tr); tr.appendChild(td); return;}
+
+        // Build table rows using DOM methods for safety
+        tbody.textContent = '';
+        data.forEach(function(v, i) {
+            var sc=v.evScore.total, scCls=sc>=75?'high':sc>=40?'medium':'low', stCls=sc>=75?'ev-ready':sc>=40?'borderline':'not-ready', stTxt=sc>=75?'EV Ready':sc>=40?'Borderline':'Not Ready';
+
+            var tr = document.createElement('tr');
+            tr.className = 'gfc-ev-row';
+            tr.style.cursor = 'pointer';
+            tr.setAttribute('data-idx', i);
+
+            var td1=document.createElement('td'); var b=document.createElement('strong'); b.textContent=v.name; td1.appendChild(b);
+            var td2=document.createElement('td'); var sp=document.createElement('span'); sp.className='gfc-score '+scCls; sp.textContent=sc; td2.appendChild(sp);
+            var td3=document.createElement('td'); td3.textContent=v.avgDailyKm.toFixed(1)+' km';
+            var td4=document.createElement('td'); td4.textContent=v.idlePct.toFixed(1)+'%';
+            var td5=document.createElement('td'); td5.textContent=v.tripsPerDay.toFixed(1);
+            var td6=document.createElement('td'); var st=document.createElement('span'); st.className='gfc-status '+stCls; st.textContent=stTxt; td6.appendChild(st);
+            tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4); tr.appendChild(td5); tr.appendChild(td6);
+
+            // Breakdown row
+            var bdRow = document.createElement('tr');
+            bdRow.className = 'gfc-breakdown';
+            bdRow.id = 'breakdown-'+i;
+            var bdTd = document.createElement('td');
+            bdTd.colSpan = 6;
+            var bdDiv = document.createElement('div');
+            bdDiv.style.padding = '12px';
+            var bd = v.scoreBreakdown;
+            ['distance','predictability','idle','charging','tripCompat'].forEach(function(k) {
+                var b = bd[k], pct=(b.score/b.max*100).toFixed(0);
+                var bar=document.createElement('div'); bar.className='gfc-breakdown-bar';
+                var lbl=document.createElement('span'); lbl.className='gfc-breakdown-label'; lbl.textContent=b.label;
+                var track=document.createElement('div'); track.className='gfc-breakdown-track';
+                var fill=document.createElement('div'); fill.className='gfc-breakdown-fill';
+                fill.style.width=pct+'%';
+                fill.style.background=pct>=70?'#107C10':pct>=40?'#FF8C00':'#D13438';
+                track.appendChild(fill);
+                var pts=document.createElement('span'); pts.className='gfc-breakdown-pts'; pts.textContent=b.score+'/'+b.max;
+                bar.appendChild(lbl); bar.appendChild(track); bar.appendChild(pts);
+                bdDiv.appendChild(bar);
+            });
+            bdTd.appendChild(bdDiv); bdRow.appendChild(bdTd);
+
+            tr.addEventListener('click', function() { bdRow.classList.toggle('open'); });
+
+            tbody.appendChild(tr);
+            tbody.appendChild(bdRow);
+        });
+    }
+
+    // --- Simulator ---
+    function renderSimulator() {
+        document.getElementById('sim-slider').max = state.vehicleData.length;
+        document.getElementById('sim-slider').value = 0;
+        updateSimulator();
+    }
+
+    function updateSimulator() {
+        var n=parseInt(document.getElementById('sim-slider').value)||0;
+        var total=state.vehicleData.length;
+        var fc=parseFloat(document.getElementById('sim-fuel-cost').value)||1.65;
+        var ec=parseFloat(document.getElementById('sim-elec-cost').value)||0.13;
+        var cp=parseFloat(document.getElementById('sim-carbon-price').value)||50;
+        document.getElementById('sim-slider-label').textContent = n+' / '+total+' vehicles';
+
+        var sorted=state.vehicleData.slice().sort(function(a,b){return b.evScore.total-a.evScore.total;});
+        var elec=sorted.slice(0,n);
+        var aCO2=0,aFuel=0,aEV=0;
+        elec.forEach(function(v){
+            var ad=v.avgDailyKm*365;
+            var af=ad*AVG_FUEL_L_PER_KM;
+            aCO2+=af*EMISSION_FACTOR/1000;
+            aFuel+=af*fc;
+            aEV+=ad*EV_EFFICIENCY_KWH_PER_KM*ec;
+        });
+        var y5co2=aCO2*5, y5fuel=(aFuel-aEV)*5, y5cc=y5co2*cp, y5maint=n*EV_MAINT_SAVINGS_YR*5;
+        document.getElementById('sim-co2-saved').textContent = y5co2.toFixed(1);
+        document.getElementById('sim-fuel-saved').textContent = '$'+numberFmt(Math.round(y5fuel));
+        document.getElementById('sim-carbon-credits').textContent = '$'+numberFmt(Math.round(y5cc));
+        document.getElementById('sim-tco-savings').textContent = '$'+numberFmt(Math.round(y5fuel+y5cc+y5maint));
+
+        renderDoughnut('chart-sim-before',total,0);
+        renderDoughnut('chart-sim-after',total-n,n);
+        renderElecOrder(sorted,fc,ec);
+    }
+
+    function renderDoughnut(id,ice,ev) {
+        if(state.charts[id]) state.charts[id].destroy();
+        state.charts[id]=new Chart(document.getElementById(id),{
+            type:'doughnut',
+            data:{labels:['ICE Vehicles','Electric Vehicles'],datasets:[{data:[ice,ev],backgroundColor:['#605E5C','#107C10'],borderWidth:0}]},
+            options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},cutout:'60%'}
+        });
+    }
+
+    function renderElecOrder(sorted,fc,ec) {
+        var tbody=document.getElementById('sim-order-body');
+        tbody.textContent='';
+        sorted.slice(0,20).forEach(function(v,i){
+            var ad=v.avgDailyKm*365, af=ad*AVG_FUEL_L_PER_KM*fc, ae=ad*EV_EFFICIENCY_KWH_PER_KM*ec;
+            var sav=af-ae+EV_MAINT_SAVINGS_YR;
+            var tr=document.createElement('tr');
+            var scCls=v.evScore.total>=75?'high':v.evScore.total>=40?'medium':'low';
+            var cells=[String(i+1), v.name, null, '$'+numberFmt(Math.round(af)), '$'+numberFmt(Math.round(ae)), '$'+numberFmt(Math.round(sav))+'/yr'];
+            cells.forEach(function(c,ci){
+                var td=document.createElement('td');
+                if(ci===2){var sp=document.createElement('span');sp.className='gfc-score '+scCls;sp.textContent=v.evScore.total;td.appendChild(sp);}
+                else if(ci===5){td.style.color='#107C10';td.style.fontWeight='600';td.textContent=c;}
+                else{td.textContent=c;}
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- Leaderboard ---
+    function renderLeaderboard() {
+        var c=document.getElementById('leaderboard-list');
+        c.textContent='';
+        if(!state.driverScores.length){c.textContent='No driver data available';return;}
+        state.driverScores.slice(0,20).forEach(function(d,i){
+            var rc=i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
+            var bc=d.score>=75?'#107C10':d.score>=50?'#FF8C00':'#D13438';
+            var item=document.createElement('div'); item.className='gfc-leaderboard-item';
+
+            var rank=document.createElement('div'); rank.className='gfc-rank '+rc; rank.textContent=i+1;
+            var info=document.createElement('div'); info.className='gfc-leaderboard-info';
+            var nm=document.createElement('div'); nm.className='gfc-leaderboard-name'; nm.textContent=d.name;
+            if(i<3){var badge=document.createElement('span');badge.className='gfc-badge champion';badge.textContent='Eco Champion';nm.appendChild(badge);}
+            else if(d.score>=80){var badge2=document.createElement('span');badge2.className='gfc-badge improved';badge2.textContent='Star Driver';nm.appendChild(badge2);}
+            var det=document.createElement('div'); det.className='gfc-leaderboard-detail'; det.textContent=d.events+' events this period';
+            info.appendChild(nm); info.appendChild(det);
+
+            var right=document.createElement('div'); right.style.textAlign='right';
+            var sc=document.createElement('div'); sc.className='gfc-leaderboard-score'; sc.style.color=bc; sc.textContent=d.score;
+            var bar=document.createElement('div'); bar.className='gfc-leaderboard-bar';
+            var fill=document.createElement('div'); fill.className='gfc-leaderboard-bar-fill'; fill.style.width=d.score+'%'; fill.style.background=bc;
+            bar.appendChild(fill); right.appendChild(sc); right.appendChild(bar);
+
+            item.appendChild(rank); item.appendChild(info); item.appendChild(right);
+            c.appendChild(item);
+        });
+    }
+
+    // --- Ace AI ---
+    async function sendAceQuery(query) {
+        if(state.aceQuerying) return;
+        if(!query) query=document.getElementById('chat-input').value.trim();
+        if(!query) return;
+        state.aceQuerying=true;
+        document.getElementById('chat-send').disabled=true;
+        document.getElementById('chat-input').value='';
+        addMsg('user',query);
+        addMsg('system','Ace is analyzing your fleet data... (this may take 30-60 seconds)');
+
+        try {
+            if(!state.aceChat){
+                var cr=await apiCall('GetAceResults',{serviceName:'dna-planet-orchestration',functionName:'create-chat',customerData:true,functionParameters:{}});
+                state.aceChat={chatId:cr.data.chat_id};
+            }
+            await delay(8000);
+            var pr=await apiCall('GetAceResults',{serviceName:'dna-planet-orchestration',functionName:'send-prompt',customerData:true,functionParameters:{chat_id:state.aceChat.chatId,prompt:query}});
+            var mgId=pr.data.message_group_id;
+            var done=false;
+            for(var a=0;a<24;a++){
+                await delay(5000);
+                var poll=await apiCall('GetAceResults',{serviceName:'dna-planet-orchestration',functionName:'get-message-group',customerData:true,functionParameters:{chat_id:state.aceChat.chatId,message_group_id:mgId}});
+                var st=poll.data.status;
+                if(st==='DONE'){removeLastSys();renderAceResp(poll.data);done=true;break;}
+                if(st==='FAILED'){removeLastSys();addMsg('ace','Sorry, the query failed. Please try a different question.');done=true;break;}
+            }
+            if(!done){removeLastSys();addMsg('ace','The query timed out. Please try again.');}
+        } catch(e) {
+            removeLastSys();
+            addMsg('ace','Error: '+(e.message||'Failed to reach Ace. Make sure your database supports Ace AI.'));
+        }
+        state.aceQuerying=false;
+        document.getElementById('chat-send').disabled=false;
+    }
+
+    function renderAceResp(data) {
+        var container = document.createElement('div');
+        var label = document.createElement('div');
+        label.className = 'gfc-msg-label';
+        label.textContent = 'Geotab Ace';
+        container.appendChild(label);
+
+        var msgs = data.messages || [];
+        msgs.forEach(function(m) {
+            if (m.role === 'assistant' || m.role === 'system') {
+                var p = document.createElement('p');
+                p.textContent = m.content || '';
+                container.appendChild(p);
+            }
+        });
+
+        // Render table if present
+        var table = data.table || data.results;
+        if (Array.isArray(table) && table.length > 0) {
+            var tbl = document.createElement('table');
+            tbl.className = 'gfc-ace-table';
+            var cols = Object.keys(table[0]);
+            var thead = document.createElement('thead');
+            var headRow = document.createElement('tr');
+            cols.forEach(function(c) { var th = document.createElement('th'); th.textContent = c; headRow.appendChild(th); });
+            thead.appendChild(headRow);
+            tbl.appendChild(thead);
+            var tbdy = document.createElement('tbody');
+            table.forEach(function(row) {
+                var tr = document.createElement('tr');
+                cols.forEach(function(c) { var td = document.createElement('td'); td.textContent = String(row[c] || ''); tr.appendChild(td); });
+                tbdy.appendChild(tr);
+            });
+            tbl.appendChild(tbdy);
+            container.appendChild(tbl);
+        }
+
+        var msgDiv = document.createElement('div');
+        msgDiv.className = 'gfc-msg ace';
+        msgDiv.appendChild(container);
+        document.getElementById('chat-messages').appendChild(msgDiv);
+        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+    }
+
+    function addMsg(type, text) {
+        var d=document.createElement('div'); d.className='gfc-msg '+type; d.textContent=text;
+        document.getElementById('chat-messages').appendChild(d);
+        document.getElementById('chat-messages').scrollTop=document.getElementById('chat-messages').scrollHeight;
+    }
+
+    function removeLastSys() {
+        var c=document.getElementById('chat-messages');
+        if(c.lastElementChild && c.lastElementChild.classList.contains('system')) c.removeChild(c.lastElementChild);
+    }
+
+    // --- Map ---
+    async function initMap() {
+        if(state.leafletMap) { state.leafletMap.invalidateSize(); return; }
+        state.leafletMap=L.map('gfc-map').setView([43.65,-79.38],10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'OpenStreetMap',maxZoom:18}).addTo(state.leafletMap);
+        var markers=L.markerClusterGroup(), bounds=[];
+        var vm={}; state.vehicleData.forEach(function(v){vm[v.id]=v;});
+        try {
+            var si=await apiCall('Get',{typeName:'DeviceStatusInfo'});
+            si.forEach(function(info){
+                var lat=info.latitude,lon=info.longitude;
+                if(!lat||!lon||(lat===0&&lon===0)) return;
+                var v=vm[info.device?info.device.id:''];
+                var name=v?v.name:'Unknown', score=v?v.evScore.total:0;
+                var color=score>=75?'#107C10':score>=40?'#FF8C00':'#D13438';
+                var icon=L.divIcon({className:'',html:'<div style="width:14px;height:14px;background:'+color+';border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>',iconSize:[14,14],iconAnchor:[7,7]});
+                var popup=document.createElement('div');
+                var h=document.createElement('strong'); h.textContent=name; popup.appendChild(h);
+                popup.appendChild(document.createElement('br'));
+                var s=document.createTextNode('EV Score: '+score+'/100'); popup.appendChild(s);
+                if(v){popup.appendChild(document.createElement('br'));popup.appendChild(document.createTextNode('Avg Daily: '+v.avgDailyKm.toFixed(1)+' km'));popup.appendChild(document.createElement('br'));popup.appendChild(document.createTextNode('Idle: '+v.idlePct.toFixed(1)+'%'));}
+                markers.addLayer(L.marker([lat,lon],{icon:icon}).bindPopup(popup));
+                bounds.push([lat,lon]);
+            });
+        } catch(e){console.error('Map error:',e);}
+        state.leafletMap.addLayer(markers);
+        if(bounds.length>0) state.leafletMap.fitBounds(bounds,{padding:[30,30]});
+    }
+
+    // --- Report ---
+    function generateReport() {
+        var jspdf=window.jspdf;
+        if(!jspdf){alert('PDF library not loaded.');return;}
+        var doc=new jspdf.jsPDF(), y=20, pw=doc.internal.pageSize.getWidth();
+        doc.setFillColor(16,124,16); doc.rect(0,0,pw,40,'F');
+        doc.setTextColor(255,255,255); doc.setFontSize(22); doc.text('GreenFleet Commander',20,25);
+        doc.setFontSize(11); doc.text('Fleet Sustainability Report - '+dayjs().format('MMMM D, YYYY'),20,34);
+        y=55; doc.setTextColor(50,49,48);
+        doc.setFontSize(16); doc.text('Executive Summary',20,y); y+=10; doc.setFontSize(10);
+        var co2=state.vehicleData.reduce(function(s,v){return s+v.estCO2Kg;},0);
+        var dist=state.vehicleData.reduce(function(s,v){return s+v.totalDistanceKm;},0);
+        var avg=state.vehicleData.length>0?Math.round(state.vehicleData.reduce(function(s,v){return s+v.evScore.total;},0)/state.vehicleData.length):0;
+        var evr=state.vehicleData.filter(function(v){return v.evScore.total>=75;}).length;
+        ['Fleet Size: '+state.devices.length+' vehicles','Total CO2 (30 days): '+(co2/1000).toFixed(1)+' tonnes','Distance: '+numberFmt(Math.round(dist))+' km','Avg EV Score: '+avg+'/100','EV-Ready: '+evr+'/'+state.devices.length].forEach(function(l){doc.text(l,20,y);y+=6;});
+        y+=8; doc.setFontSize(16); doc.text('Top EV-Ready Vehicles',20,y); y+=10; doc.setFontSize(9);
+        doc.text(padR('Rank',8)+padR('Vehicle',27)+padR('Score',9)+padR('Avg Daily km',16)+'Idle %',20,y); y+=6;
+        state.vehicleData.slice(0,10).forEach(function(v,i){doc.text(padR(String(i+1),8)+padR(v.name,27)+padR(String(v.evScore.total),9)+padR(v.avgDailyKm.toFixed(1),16)+v.idlePct.toFixed(1)+'%',20,y);y+=5;});
+        y+=10; if(y>240){doc.addPage();y=20;}
+        doc.setFontSize(16); doc.text('Recommendations',20,y); y+=10; doc.setFontSize(10);
+        ['1. Prioritize '+Math.min(evr,5)+' highest-scored vehicles for EV replacement.','2. Target idle time reduction for vehicles with >30% idle ratio.','3. Implement eco-driving training for harsh braking/acceleration.','4. Install charging infrastructure at primary depot locations.','5. Set fleet carbon budget targets and track monthly.'].forEach(function(r){doc.text(r,20,y);y+=7;});
+        doc.setFontSize(8); doc.setTextColor(150); doc.text('Generated by GreenFleet Commander',20,285);
+        doc.save('GreenFleet-Report-'+dayjs().format('YYYY-MM-DD')+'.pdf');
+    }
+
+    // --- Tabs ---
+    function initTabs() {
+        document.querySelectorAll('.gfc-tab').forEach(function(tab){
+            tab.addEventListener('click',function(){
+                var t=this.getAttribute('data-tab');
+                document.querySelectorAll('.gfc-tab').forEach(function(t){t.classList.remove('active');});
+                document.querySelectorAll('.gfc-tab-panel').forEach(function(p){p.classList.remove('active');});
+                this.classList.add('active');
+                document.getElementById('panel-'+t).classList.add('active');
+                if(t==='map') setTimeout(initMap,100);
+            });
+        });
+        document.querySelectorAll('.gfc-quick-btn').forEach(function(b){b.addEventListener('click',function(){sendAceQuery(this.getAttribute('data-query'));});});
+        document.getElementById('sim-slider').addEventListener('input',updateSimulator);
+        document.getElementById('sim-fuel-cost').addEventListener('change',updateSimulator);
+        document.getElementById('sim-elec-cost').addEventListener('change',updateSimulator);
+        document.getElementById('sim-carbon-price').addEventListener('change',updateSimulator);
+        document.getElementById('chat-input').addEventListener('keypress',function(e){if(e.key==='Enter')sendAceQuery();});
+        document.querySelectorAll('.gfc-toggle-btn').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.gfc-toggle-btn').forEach(function(x){x.classList.remove('active');});this.classList.add('active');});});
+        document.querySelectorAll('#ev-table th[data-sort]').forEach(function(th){th.addEventListener('click',function(){var k=this.getAttribute('data-sort'),d=this.getAttribute('data-dir')||'desc';var nd=d==='desc'?'asc':'desc';this.setAttribute('data-dir',nd);renderEVTable(k,nd);});});
+    }
+
+    // --- Geotab Add-In Registration ---
+    window.geotab = window.geotab || {};
+    window.geotab.addin = window.geotab.addin || {};
+    window.geotab.addin.greenfleetCommander = function() {
+        return {
+            initialize: function(api, st, callback) {
+                state.api = api;
+                initTabs();
+                loadAllData().then(function(){callback();}).catch(function(){callback();});
+            },
+            focus: function(api) { state.api = api; loadAllData(); },
+            blur: function() {}
+        };
+    };
+
+    window.GFC = { sendAceQuery: sendAceQuery, generateReport: generateReport };
+
+    // Standalone mode
+    if (!window.parent || window.parent === window) {
+        document.addEventListener('DOMContentLoaded', function() {
+            initTabs();
+            document.getElementById('gfc-fleet-name').textContent = 'Standalone Mode';
+            document.getElementById('gfc-vehicle-count').textContent = 'Connect to MyGeotab';
+        });
+    }
+})();
+</script>
+</body>
+</html>
