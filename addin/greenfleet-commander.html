@@ -108,8 +108,8 @@
         .gfc-tab-icon { font-size: 16px; }
 
         .gfc-content { padding: var(--gfc-lg); max-width: 1400px; margin: 0 auto; }
-        .gfc-tab-panel { display: none; }
-        .gfc-tab-panel.active { display: block; }
+        .gfc-tab-panel { display: none !important; }
+        .gfc-tab-panel.active { display: block !important; }
 
         .gfc-card {
             background: var(--gfc-white);
@@ -979,7 +979,7 @@
     // --- Geotab Add-In Registration ---
     window.geotab = window.geotab || {};
     window.geotab.addin = window.geotab.addin || {};
-    window.geotab.addin.greenfleetCommander = function() {
+    window.geotab.addin["greenfleet-commander"] = function() {
         return {
             initialize: function(api, st, callback) {
                 state.api = api;
@@ -993,14 +993,24 @@
 
     window.GFC = { sendAceQuery: sendAceQuery, generateReport: generateReport };
 
-    // Standalone mode
-    if (!window.parent || window.parent === window) {
-        document.addEventListener('DOMContentLoaded', function() {
-            initTabs();
-            document.getElementById('gfc-fleet-name').textContent = 'Standalone Mode';
-            document.getElementById('gfc-vehicle-count').textContent = 'Connect to MyGeotab';
-        });
-    }
+    // Fallback: if initialize() hasn't fired after 3s, init tabs anyway
+    var _tabsReady = false;
+    var _origInitTabs = initTabs;
+    initTabs = function() { _tabsReady = true; _origInitTabs(); };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            if (!_tabsReady) {
+                console.log('GFC: initialize() not called, activating tabs via fallback');
+                _origInitTabs();
+                // Standalone mode — no Geotab API available
+                if (!state.api) {
+                    document.getElementById('gfc-fleet-name').textContent = 'Standalone Mode';
+                    document.getElementById('gfc-vehicle-count').textContent = 'Connect to MyGeotab';
+                }
+            }
+        }, 3000);
+    });
 })();
 </script>
 </body>
