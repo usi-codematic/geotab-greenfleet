@@ -25,848 +25,261 @@
     <style>
         /* ============================================================
            GreenFleet Commander — Zenith Design System Styles
-           Prefixed with .gfc- to avoid MyGeotab iframe conflicts
+           Aggressive CSS isolation for MyGeotab compatibility.
+           All rules scoped under #gfc-app with !important to survive
+           MyGeotab parent CSS overrides (Add-Ins are injected into DOM).
            ============================================================ */
 
-        :root {
-            --gfc-primary: #0078D4;
-            --gfc-primary-dark: #005A9E;
-            --gfc-primary-light: #DEECF9;
-            --gfc-green: #107C10;
-            --gfc-green-light: #DFF6DD;
-            --gfc-green-dark: #054B05;
-            --gfc-warning: #FF8C00;
-            --gfc-warning-light: #FFF4CE;
-            --gfc-error: #D13438;
-            --gfc-error-light: #FDE7E9;
-            --gfc-success: #107C10;
-            --gfc-text: #323130;
-            --gfc-text-secondary: #605E5C;
-            --gfc-border: #EDEBE9;
-            --gfc-bg: #FAF9F8;
-            --gfc-white: #FFFFFF;
-            --gfc-xs: 4px;
-            --gfc-sm: 8px;
-            --gfc-md: 16px;
-            --gfc-lg: 24px;
-            --gfc-xl: 32px;
-            --gfc-font: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-            --gfc-radius: 6px;
-            --gfc-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            --gfc-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        .gfc-app {
-            font-family: var(--gfc-font);
-            color: var(--gfc-text);
-            background: var(--gfc-bg);
-            min-height: 100vh;
-            padding: 0;
-            margin: 0;
-        }
-
-        .gfc-header {
-            background: linear-gradient(135deg, var(--gfc-green-dark) 0%, var(--gfc-green) 50%, var(--gfc-primary) 100%);
-            color: white;
-            padding: var(--gfc-md) var(--gfc-lg);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: var(--gfc-shadow-lg);
-        }
-
-        .gfc-header-left {
-            display: flex;
-            align-items: center;
-            gap: var(--gfc-sm);
-        }
-
-        .gfc-header h1 {
-            font-size: 20px;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .gfc-header-subtitle {
-            font-size: 12px;
-            opacity: 0.85;
-            margin-top: 2px;
-        }
-
-        .gfc-header-right {
-            font-size: 13px;
-            opacity: 0.9;
-            display: flex;
-            align-items: center;
-            gap: var(--gfc-sm);
-        }
-
-        .gfc-logo {
-            width: 32px;
-            height: 32px;
-        }
-
-        .gfc-tabs {
-            display: flex;
-            background: var(--gfc-white);
-            border-bottom: 2px solid var(--gfc-border);
-            padding: 0 var(--gfc-md);
-            overflow-x: auto;
-        }
-
-        .gfc-tab {
-            padding: 12px var(--gfc-md);
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--gfc-text-secondary);
-            cursor: pointer;
-            border: none;
-            background: none;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .gfc-tab:hover {
-            color: var(--gfc-primary);
-            background: var(--gfc-primary-light);
-        }
-
-        .gfc-tab.active {
-            color: var(--gfc-green);
-            border-bottom-color: var(--gfc-green);
-            font-weight: 600;
-        }
-
-        .gfc-tab-icon {
-            font-size: 16px;
-        }
-
-        .gfc-content {
-            padding: var(--gfc-lg);
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .gfc-tab-panel {
-            display: none !important;
-        }
-
-        .gfc-tab-panel.gfc-active {
-            display: block !important;
-        }
-
-        .gfc-card {
-            background: var(--gfc-white);
-            border-radius: var(--gfc-radius);
-            box-shadow: var(--gfc-shadow);
-            padding: var(--gfc-lg);
-            margin-bottom: var(--gfc-md);
-            border: 1px solid var(--gfc-border);
-        }
-
-        .gfc-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--gfc-md);
-        }
-
-        .gfc-card-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--gfc-text);
-        }
-
-        .gfc-summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--gfc-md);
-            margin-bottom: var(--gfc-lg);
-        }
-
-        .gfc-summary-card {
-            background: var(--gfc-white);
-            border-radius: var(--gfc-radius);
-            box-shadow: var(--gfc-shadow);
-            padding: var(--gfc-lg);
-            border-left: 4px solid var(--gfc-green);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .gfc-summary-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--gfc-shadow-lg);
-        }
-
-        .gfc-summary-card.blue {
-            border-left-color: var(--gfc-primary);
-        }
-
-        .gfc-summary-card.orange {
-            border-left-color: var(--gfc-warning);
-        }
-
-        .gfc-summary-card.red {
-            border-left-color: var(--gfc-error);
-        }
-
-        .gfc-summary-label {
-            font-size: 12px;
-            color: var(--gfc-text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: var(--gfc-xs);
-        }
-
-        .gfc-summary-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--gfc-text);
-        }
-
-        .gfc-summary-unit {
-            font-size: 14px;
-            font-weight: 400;
-            color: var(--gfc-text-secondary);
-        }
-
-        .gfc-chart-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--gfc-md);
-            margin-bottom: var(--gfc-lg);
-        }
-
-        .gfc-chart-container {
-            position: relative;
-            height: 300px;
-        }
-
-        .gfc-table-wrapper {
-            overflow-x: auto;
-        }
-
-        .gfc-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .gfc-table th {
-            background: var(--gfc-bg);
-            padding: 10px 12px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--gfc-text-secondary);
-            border-bottom: 2px solid var(--gfc-border);
-            cursor: pointer;
-            user-select: none;
-            white-space: nowrap;
-        }
-
-        .gfc-table th:hover {
-            background: var(--gfc-primary-light);
-        }
-
-        .gfc-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--gfc-border);
-        }
-
-        .gfc-table tr:hover {
-            background: var(--gfc-bg);
-        }
-
-        .gfc-score {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 42px;
-            height: 28px;
-            border-radius: 14px;
-            font-weight: 700;
-            font-size: 13px;
-            color: white;
-        }
-
-        .gfc-score.high {
-            background: var(--gfc-green);
-        }
-
-        .gfc-score.medium {
-            background: var(--gfc-warning);
-        }
-
-        .gfc-score.low {
-            background: var(--gfc-error);
-        }
-
-        .gfc-status {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .gfc-status.ev-ready {
-            background: var(--gfc-green-light);
-            color: var(--gfc-green-dark);
-        }
-
-        .gfc-status.borderline {
-            background: var(--gfc-warning-light);
-            color: #7A4F01;
-        }
-
-        .gfc-status.not-ready {
-            background: var(--gfc-error-light);
-            color: #A4262C;
-        }
-
-        .gfc-simulator-controls {
-            background: var(--gfc-bg);
-            border-radius: var(--gfc-radius);
-            padding: var(--gfc-lg);
-            margin-bottom: var(--gfc-lg);
-        }
-
-        .gfc-slider-row {
-            display: flex;
-            align-items: center;
-            gap: var(--gfc-md);
-        }
-
-        .gfc-slider {
-            flex: 1;
-            -webkit-appearance: none;
-            height: 8px;
-            border-radius: 4px;
-            background: linear-gradient(to right, var(--gfc-green), var(--gfc-primary));
-            outline: none;
-        }
-
-        .gfc-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: var(--gfc-green);
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-        }
-
-        .gfc-slider-label {
-            font-size: 14px;
-            font-weight: 600;
-            min-width: 120px;
-        }
-
-        .gfc-sim-results {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: var(--gfc-md);
-            margin-top: var(--gfc-lg);
-        }
-
-        .gfc-sim-metric {
-            text-align: center;
-            padding: var(--gfc-md);
-            background: var(--gfc-white);
-            border-radius: var(--gfc-radius);
-            box-shadow: var(--gfc-shadow);
-        }
-
-        .gfc-sim-metric-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--gfc-green);
-        }
-
-        .gfc-sim-metric-label {
-            font-size: 12px;
-            color: var(--gfc-text-secondary);
-            margin-top: var(--gfc-xs);
-        }
-
-        .gfc-doughnut-grid {
-            display: grid;
-            grid-template-columns: 1fr 80px 1fr;
-            align-items: center;
-            gap: var(--gfc-md);
-            margin: var(--gfc-lg) 0;
-        }
-
-        .gfc-doughnut-container {
-            position: relative;
-            height: 220px;
-        }
-
-        .gfc-arrow {
-            text-align: center;
-            font-size: 32px;
-            color: var(--gfc-green);
-        }
-
-        .gfc-param-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: var(--gfc-md);
-            margin-top: var(--gfc-md);
-        }
-
-        .gfc-param-label {
-            font-size: 12px;
-            color: var(--gfc-text-secondary);
-            margin-bottom: var(--gfc-xs);
-        }
-
-        .gfc-param-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--gfc-border);
-            border-radius: var(--gfc-radius);
-            font-size: 14px;
-            font-family: var(--gfc-font);
-        }
-
-        .gfc-param-input:focus {
-            outline: none;
-            border-color: var(--gfc-primary);
-            box-shadow: 0 0 0 2px var(--gfc-primary-light);
-        }
-
-        .gfc-chat {
-            display: flex;
-            flex-direction: column;
-            height: 500px;
-        }
-
-        .gfc-chat-quick {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--gfc-sm);
-            padding: var(--gfc-md);
-            border-bottom: 1px solid var(--gfc-border);
-        }
-
-        .gfc-quick-btn {
-            padding: 6px 14px;
-            border: 1px solid var(--gfc-primary);
-            border-radius: 16px;
-            background: var(--gfc-white);
-            color: var(--gfc-primary);
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .gfc-quick-btn:hover {
-            background: var(--gfc-primary);
-            color: white;
-        }
-
-        .gfc-chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: var(--gfc-md);
-        }
-
-        .gfc-msg {
-            margin-bottom: var(--gfc-md);
-            max-width: 85%;
-        }
-
-        .gfc-msg.user {
-            margin-left: auto;
-            background: var(--gfc-primary);
-            color: white;
-            padding: 10px 14px;
-            border-radius: 16px 16px 4px 16px;
-            font-size: 13px;
-        }
-
-        .gfc-msg.ace {
-            background: var(--gfc-green-light);
-            padding: 12px 16px;
-            border-radius: 16px 16px 16px 4px;
-            font-size: 13px;
-        }
-
-        .gfc-msg.ace .gfc-msg-label {
-            font-weight: 600;
-            color: var(--gfc-green-dark);
-            margin-bottom: var(--gfc-xs);
-            font-size: 11px;
-        }
-
-        .gfc-msg.system {
-            text-align: center;
-            color: var(--gfc-text-secondary);
-            font-size: 12px;
-            font-style: italic;
-        }
-
-        .gfc-chat-input {
-            display: flex;
-            gap: var(--gfc-sm);
-            padding: var(--gfc-md);
-            border-top: 1px solid var(--gfc-border);
-        }
-
-        .gfc-chat-input input {
-            flex: 1;
-            padding: 10px 14px;
-            border: 1px solid var(--gfc-border);
-            border-radius: 20px;
-            font-size: 13px;
-            font-family: var(--gfc-font);
-            outline: none;
-        }
-
-        .gfc-chat-input input:focus {
-            border-color: var(--gfc-primary);
-            box-shadow: 0 0 0 2px var(--gfc-primary-light);
-        }
-
-        .gfc-chat-input button {
-            padding: 10px 20px;
-            background: var(--gfc-green);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 13px;
-        }
-
-        .gfc-chat-input button:hover {
-            background: var(--gfc-green-dark);
-        }
-
-        .gfc-chat-input button:disabled {
-            background: var(--gfc-border);
-            cursor: not-allowed;
-        }
-
-        .gfc-loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            color: var(--gfc-text-secondary);
-            gap: var(--gfc-sm);
-        }
-
-        .gfc-spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid var(--gfc-border);
-            border-top-color: var(--gfc-green);
-            border-radius: 50%;
-            animation: gfc-spin 0.8s linear infinite;
-        }
-
-        @keyframes gfc-spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .gfc-pulse {
-            display: inline-block;
-            animation: gfc-pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes gfc-pulse {
-
-            0%,
-            100% {
-                opacity: 0.4;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
-
-        .gfc-map-container {
-            height: 500px;
-            border-radius: var(--gfc-radius);
-            overflow: hidden;
-            border: 1px solid var(--gfc-border);
-        }
-
-        .gfc-leaderboard-item {
-            display: flex;
-            align-items: center;
-            padding: 12px var(--gfc-md);
-            border-bottom: 1px solid var(--gfc-border);
-            gap: var(--gfc-md);
-        }
-
-        .gfc-leaderboard-item:hover {
-            background: var(--gfc-bg);
-        }
-
-        .gfc-rank {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .gfc-rank.gold {
-            background: #FFD700;
-            color: #5D4200;
-        }
-
-        .gfc-rank.silver {
-            background: #C0C0C0;
-            color: #333;
-        }
-
-        .gfc-rank.bronze {
-            background: #CD7F32;
-            color: #fff;
-        }
-
-        .gfc-rank.normal {
-            background: var(--gfc-bg);
-            color: var(--gfc-text-secondary);
-        }
-
-        .gfc-leaderboard-info {
-            flex: 1;
-        }
-
-        .gfc-leaderboard-name {
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .gfc-leaderboard-detail {
-            font-size: 12px;
-            color: var(--gfc-text-secondary);
-        }
-
-        .gfc-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: 600;
-            margin-left: 6px;
-        }
-
-        .gfc-badge.champion {
-            background: #FFD700;
-            color: #5D4200;
-        }
-
-        .gfc-badge.improved {
-            background: var(--gfc-green-light);
-            color: var(--gfc-green-dark);
-        }
-
-        .gfc-leaderboard-score {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .gfc-leaderboard-bar {
-            width: 120px;
-            height: 8px;
-            background: var(--gfc-border);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .gfc-leaderboard-bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.5s;
-        }
-
-        .gfc-btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: var(--gfc-radius);
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            font-family: var(--gfc-font);
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .gfc-btn-primary {
-            background: var(--gfc-green);
-            color: white;
-        }
-
-        .gfc-btn-primary:hover {
-            background: var(--gfc-green-dark);
-        }
-
-        .gfc-btn-secondary {
-            background: var(--gfc-white);
-            color: var(--gfc-primary);
-            border: 1px solid var(--gfc-primary);
-        }
-
-        .gfc-btn-secondary:hover {
-            background: var(--gfc-primary-light);
-        }
-
-        .gfc-toggle-group {
-            display: inline-flex;
-            border: 1px solid var(--gfc-border);
-            border-radius: var(--gfc-radius);
-            overflow: hidden;
-        }
-
-        .gfc-toggle-btn {
-            padding: 6px 16px;
-            border: none;
-            background: var(--gfc-white);
-            font-size: 12px;
-            cursor: pointer;
-            font-family: var(--gfc-font);
-            color: var(--gfc-text-secondary);
-        }
-
-        .gfc-toggle-btn.active {
-            background: var(--gfc-green);
-            color: white;
-            font-weight: 600;
-        }
-
-        .gfc-report-preview {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: var(--gfc-md);
-        }
-
-        .gfc-report-section {
-            padding: var(--gfc-md);
-            border: 1px dashed var(--gfc-border);
-            border-radius: var(--gfc-radius);
-            text-align: center;
-        }
-
-        .gfc-report-section h4 {
-            margin: 0 0 var(--gfc-sm);
-            font-size: 14px;
-            color: var(--gfc-text);
-        }
-
-        .gfc-report-section p {
-            margin: 0;
-            font-size: 12px;
-            color: var(--gfc-text-secondary);
-        }
-
-        .gfc-ace-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-            margin-top: var(--gfc-sm);
-        }
-
-        .gfc-ace-table th {
-            background: var(--gfc-green-dark);
-            color: white;
-            padding: 6px 8px;
-            text-align: left;
-            font-size: 11px;
-        }
-
-        .gfc-ace-table td {
-            padding: 5px 8px;
-            border-bottom: 1px solid var(--gfc-border);
-        }
-
-        .gfc-breakdown {
-            display: none;
-        }
-
-        .gfc-breakdown.open {
-            display: table-row;
-        }
-
-        .gfc-breakdown-bar {
-            display: flex;
-            align-items: center;
-            gap: var(--gfc-sm);
-            margin-bottom: var(--gfc-sm);
-        }
-
-        .gfc-breakdown-label {
-            font-size: 12px;
-            width: 140px;
-            color: var(--gfc-text-secondary);
-        }
-
-        .gfc-breakdown-track {
-            flex: 1;
-            height: 8px;
-            background: var(--gfc-border);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .gfc-breakdown-fill {
-            height: 100%;
-            border-radius: 4px;
-            background: var(--gfc-green);
-            transition: width 0.5s;
-        }
-
-        .gfc-breakdown-pts {
-            font-size: 12px;
-            font-weight: 600;
-            width: 40px;
-            text-align: right;
-        }
-
-        .gfc-empty {
-            text-align: center;
-            padding: 60px var(--gfc-lg);
-            color: var(--gfc-text-secondary);
-        }
-
-        .gfc-empty-icon {
-            font-size: 48px;
-            margin-bottom: var(--gfc-md);
-        }
+        /* --- CSS Reset for everything inside #gfc-app --- */
+        #gfc-app, #gfc-app *,
+        #gfc-app *::before, #gfc-app *::after {
+            box-sizing: border-box !important;
+        }
+        /* Reset inherited styles on all elements inside our app */
+        #gfc-app div, #gfc-app span, #gfc-app h1, #gfc-app h2, #gfc-app h3, #gfc-app h4,
+        #gfc-app p, #gfc-app a, #gfc-app table, #gfc-app thead, #gfc-app tbody,
+        #gfc-app tr, #gfc-app th, #gfc-app td, #gfc-app button, #gfc-app input,
+        #gfc-app canvas, #gfc-app svg, #gfc-app img, #gfc-app label, #gfc-app strong {
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
+            line-height: 1.5 !important;
+            text-decoration: none !important;
+            list-style: none !important;
+            vertical-align: baseline !important;
+            background: transparent !important;
+            color: inherit !important;
+        }
+
+        #gfc-app {
+            color: #323130 !important;
+            background: #FAF9F8 !important;
+            min-height: 100vh !important;
+            font-size: 14px !important;
+            position: relative !important;
+            width: 100% !important;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
+        }
+
+        /* --- Header --- */
+        #gfc-app .gfc-header {
+            background: linear-gradient(135deg, #054B05 0%, #107C10 50%, #0078D4 100%) !important;
+            color: white !important;
+            padding: 16px 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
+        }
+        #gfc-app .gfc-header-left { display: flex !important; align-items: center !important; gap: 8px !important; }
+        #gfc-app .gfc-header h1 { font-size: 20px !important; font-weight: 600 !important; color: white !important; line-height: 1.3 !important; }
+        #gfc-app .gfc-header-subtitle { font-size: 12px !important; opacity: 0.85 !important; margin-top: 2px !important; color: white !important; }
+        #gfc-app .gfc-header-right { font-size: 13px !important; opacity: 0.9 !important; display: flex !important; align-items: center !important; gap: 8px !important; color: white !important; }
+        #gfc-app .gfc-logo { width: 32px !important; height: 32px !important; }
+
+        /* --- Tabs --- */
+        #gfc-app .gfc-tabs {
+            display: flex !important;
+            background: #FFFFFF !important;
+            border-bottom: 2px solid #EDEBE9 !important;
+            padding: 0 16px !important;
+            overflow-x: auto !important;
+        }
+        #gfc-app .gfc-tab {
+            padding: 12px 16px !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            color: #605E5C !important;
+            cursor: pointer !important;
+            background: none !important;
+            border-bottom: 3px solid transparent !important;
+            transition: all 0.2s !important;
+            white-space: nowrap !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+        }
+        #gfc-app .gfc-tab:hover { color: #0078D4 !important; background: #DEECF9 !important; }
+        #gfc-app .gfc-tab.active { color: #107C10 !important; border-bottom-color: #107C10 !important; font-weight: 600 !important; }
+        #gfc-app .gfc-tab-icon { font-size: 16px !important; }
+
+        /* --- Content & Panels --- */
+        #gfc-app .gfc-content { padding: 24px !important; max-width: 1400px !important; margin: 0 auto !important; }
+        #gfc-app .gfc-tab-panel { display: none !important; }
+        #gfc-app .gfc-tab-panel.gfc-active { display: block !important; }
+
+        /* --- Cards --- */
+        #gfc-app .gfc-card {
+            background: #FFFFFF !important;
+            border-radius: 6px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+            padding: 24px !important;
+            margin-bottom: 16px !important;
+            border: 1px solid #EDEBE9 !important;
+        }
+        #gfc-app .gfc-card-header { display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 16px !important; flex-wrap: wrap !important; gap: 8px !important; }
+        #gfc-app .gfc-card-title { font-size: 16px !important; font-weight: 600 !important; color: #323130 !important; }
+
+        /* --- Summary Grid --- */
+        #gfc-app .gfc-summary-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+            gap: 16px !important;
+            margin-bottom: 24px !important;
+        }
+        #gfc-app .gfc-summary-card {
+            background: #FFFFFF !important;
+            border-radius: 6px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+            padding: 24px !important;
+            border-left: 4px solid #107C10 !important;
+            transition: transform 0.2s, box-shadow 0.2s !important;
+        }
+        #gfc-app .gfc-summary-card:hover { transform: translateY(-2px) !important; box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important; }
+        #gfc-app .gfc-summary-card.blue { border-left-color: #0078D4 !important; }
+        #gfc-app .gfc-summary-card.orange { border-left-color: #FF8C00 !important; }
+        #gfc-app .gfc-summary-card.red { border-left-color: #D13438 !important; }
+        #gfc-app .gfc-summary-label { font-size: 12px !important; color: #605E5C !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; margin-bottom: 4px !important; }
+        #gfc-app .gfc-summary-value { font-size: 28px !important; font-weight: 700 !important; color: #323130 !important; }
+        #gfc-app .gfc-summary-unit { font-size: 14px !important; font-weight: 400 !important; color: #605E5C !important; }
+
+        /* --- Charts --- */
+        #gfc-app .gfc-chart-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 16px !important; margin-bottom: 24px !important; }
+        #gfc-app .gfc-chart-container { position: relative !important; height: 300px !important; }
+
+        /* --- Tables --- */
+        #gfc-app .gfc-table-wrapper { overflow-x: auto !important; }
+        #gfc-app .gfc-table { width: 100% !important; border-collapse: collapse !important; font-size: 13px !important; }
+        #gfc-app .gfc-table th {
+            background: #FAF9F8 !important; padding: 10px 12px !important; text-align: left !important; font-weight: 600 !important;
+            color: #605E5C !important; border-bottom: 2px solid #EDEBE9 !important;
+            cursor: pointer !important; user-select: none !important; white-space: nowrap !important;
+        }
+        #gfc-app .gfc-table th:hover { background: #DEECF9 !important; }
+        #gfc-app .gfc-table td { padding: 10px 12px !important; border-bottom: 1px solid #EDEBE9 !important; }
+        #gfc-app .gfc-table tr:hover { background: #FAF9F8 !important; }
+
+        /* --- Scores & Status --- */
+        #gfc-app .gfc-score {
+            display: inline-flex !important; align-items: center !important; justify-content: center !important;
+            width: 42px !important; height: 28px !important; border-radius: 14px !important; font-weight: 700 !important; font-size: 13px !important; color: white !important;
+        }
+        #gfc-app .gfc-score.high { background: #107C10 !important; }
+        #gfc-app .gfc-score.medium { background: #FF8C00 !important; }
+        #gfc-app .gfc-score.low { background: #D13438 !important; }
+        #gfc-app .gfc-status { display: inline-block !important; padding: 3px 10px !important; border-radius: 12px !important; font-size: 11px !important; font-weight: 600 !important; }
+        #gfc-app .gfc-status.ev-ready { background: #DFF6DD !important; color: #054B05 !important; }
+        #gfc-app .gfc-status.borderline { background: #FFF4CE !important; color: #7A4F01 !important; }
+        #gfc-app .gfc-status.not-ready { background: #FDE7E9 !important; color: #A4262C !important; }
+
+        /* --- Simulator --- */
+        #gfc-app .gfc-simulator-controls { background: #FAF9F8 !important; border-radius: 6px !important; padding: 24px !important; margin-bottom: 24px !important; }
+        #gfc-app .gfc-slider-row { display: flex !important; align-items: center !important; gap: 16px !important; }
+        #gfc-app .gfc-slider { flex: 1 !important; -webkit-appearance: none !important; appearance: none !important; height: 8px !important; border-radius: 4px !important; background: linear-gradient(to right, #107C10, #0078D4) !important; }
+        #gfc-app .gfc-slider::-webkit-slider-thumb { -webkit-appearance: none !important; appearance: none !important; width: 24px !important; height: 24px !important; border-radius: 50% !important; background: #107C10 !important; cursor: pointer !important; box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important; }
+        #gfc-app .gfc-slider-label { font-size: 14px !important; font-weight: 600 !important; min-width: 120px !important; }
+        #gfc-app .gfc-sim-results { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important; gap: 16px !important; margin-top: 24px !important; }
+        #gfc-app .gfc-sim-metric { text-align: center !important; padding: 16px !important; background: #FFFFFF !important; border-radius: 6px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important; }
+        #gfc-app .gfc-sim-metric-value { font-size: 24px !important; font-weight: 700 !important; color: #107C10 !important; }
+        #gfc-app .gfc-sim-metric-label { font-size: 12px !important; color: #605E5C !important; margin-top: 4px !important; }
+        #gfc-app .gfc-doughnut-grid { display: grid !important; grid-template-columns: 1fr 80px 1fr !important; align-items: center !important; gap: 16px !important; margin: 24px 0 !important; }
+        #gfc-app .gfc-doughnut-container { position: relative !important; height: 220px !important; }
+        #gfc-app .gfc-arrow { text-align: center !important; font-size: 32px !important; color: #107C10 !important; }
+        #gfc-app .gfc-param-grid { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important; gap: 16px !important; margin-top: 16px !important; }
+        #gfc-app .gfc-param-label { font-size: 12px !important; color: #605E5C !important; margin-bottom: 4px !important; }
+        #gfc-app .gfc-param-input { width: 100% !important; padding: 8px 12px !important; border: 1px solid #EDEBE9 !important; border-radius: 6px !important; font-size: 14px !important; background: #FFFFFF !important; color: #323130 !important; }
+        #gfc-app .gfc-param-input:focus { border-color: #0078D4 !important; box-shadow: 0 0 0 2px #DEECF9 !important; }
+
+        /* --- Chat / AI Assistant --- */
+        #gfc-app .gfc-chat { display: flex !important; flex-direction: column !important; height: 500px !important; }
+        #gfc-app .gfc-chat-quick { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; padding: 16px !important; border-bottom: 1px solid #EDEBE9 !important; }
+        #gfc-app .gfc-quick-btn { padding: 6px 14px !important; border: 1px solid #0078D4 !important; border-radius: 16px !important; background: #FFFFFF !important; color: #0078D4 !important; font-size: 12px !important; cursor: pointer !important; }
+        #gfc-app .gfc-quick-btn:hover { background: #0078D4 !important; color: white !important; }
+        #gfc-app .gfc-chat-messages { flex: 1 !important; overflow-y: auto !important; padding: 16px !important; }
+        #gfc-app .gfc-msg { margin-bottom: 16px !important; max-width: 85% !important; }
+        #gfc-app .gfc-msg.user { margin-left: auto !important; background: #0078D4 !important; color: white !important; padding: 10px 14px !important; border-radius: 16px 16px 4px 16px !important; font-size: 13px !important; }
+        #gfc-app .gfc-msg.ace { background: #DFF6DD !important; padding: 12px 16px !important; border-radius: 16px 16px 16px 4px !important; font-size: 13px !important; color: #323130 !important; }
+        #gfc-app .gfc-msg.ace .gfc-msg-label { font-weight: 600 !important; color: #054B05 !important; margin-bottom: 4px !important; font-size: 11px !important; }
+        #gfc-app .gfc-msg.system { text-align: center !important; color: #605E5C !important; font-size: 12px !important; font-style: italic !important; max-width: 100% !important; }
+        #gfc-app .gfc-chat-input { display: flex !important; gap: 8px !important; padding: 16px !important; border-top: 1px solid #EDEBE9 !important; }
+        #gfc-app .gfc-chat-input input { flex: 1 !important; padding: 10px 14px !important; border: 1px solid #EDEBE9 !important; border-radius: 20px !important; font-size: 13px !important; background: #FFFFFF !important; color: #323130 !important; }
+        #gfc-app .gfc-chat-input input:focus { border-color: #0078D4 !important; box-shadow: 0 0 0 2px #DEECF9 !important; }
+        #gfc-app .gfc-chat-input button { padding: 10px 20px !important; background: #107C10 !important; color: white !important; border-radius: 20px !important; font-weight: 600 !important; cursor: pointer !important; font-size: 13px !important; }
+        #gfc-app .gfc-chat-input button:hover { background: #054B05 !important; }
+        #gfc-app .gfc-chat-input button:disabled { background: #EDEBE9 !important; cursor: not-allowed !important; color: #605E5C !important; }
+
+        /* --- Loading --- */
+        #gfc-app .gfc-loading { display: flex !important; align-items: center !important; justify-content: center !important; padding: 40px !important; color: #605E5C !important; gap: 8px !important; }
+        #gfc-app .gfc-spinner { width: 20px !important; height: 20px !important; border: 3px solid #EDEBE9 !important; border-top-color: #107C10 !important; border-radius: 50% !important; animation: gfc-spin 0.8s linear infinite !important; }
+        @keyframes gfc-spin { to { transform: rotate(360deg); } }
+        #gfc-app .gfc-pulse { display: inline-block !important; animation: gfc-pulse 1.5s ease-in-out infinite !important; }
+        @keyframes gfc-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        /* --- Map --- */
+        #gfc-app .gfc-map-container { height: 500px !important; border-radius: 6px !important; overflow: hidden !important; border: 1px solid #EDEBE9 !important; position: relative !important; z-index: 1 !important; }
+        #gfc-app .gfc-map-container img { max-width: none !important; border: none !important; }
+        #gfc-app .gfc-map-container .leaflet-tile { border: none !important; }
+        #gfc-app .gfc-map-container .leaflet-control-zoom a { width: 30px !important; height: 30px !important; line-height: 30px !important; background: #FFFFFF !important; color: #323130 !important; }
+
+        /* --- Leaderboard --- */
+        #gfc-app .gfc-leaderboard-item { display: flex !important; align-items: center !important; padding: 12px 16px !important; border-bottom: 1px solid #EDEBE9 !important; gap: 16px !important; }
+        #gfc-app .gfc-leaderboard-item:hover { background: #FAF9F8 !important; }
+        #gfc-app .gfc-rank { width: 36px !important; height: 36px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; font-weight: 700 !important; font-size: 14px !important; }
+        #gfc-app .gfc-rank.gold { background: #FFD700 !important; color: #5D4200 !important; }
+        #gfc-app .gfc-rank.silver { background: #C0C0C0 !important; color: #333 !important; }
+        #gfc-app .gfc-rank.bronze { background: #CD7F32 !important; color: #fff !important; }
+        #gfc-app .gfc-rank.normal { background: #FAF9F8 !important; color: #605E5C !important; }
+        #gfc-app .gfc-leaderboard-info { flex: 1 !important; }
+        #gfc-app .gfc-leaderboard-name { font-weight: 600 !important; font-size: 14px !important; }
+        #gfc-app .gfc-leaderboard-detail { font-size: 12px !important; color: #605E5C !important; }
+        #gfc-app .gfc-badge { display: inline-block !important; padding: 2px 8px !important; border-radius: 10px !important; font-size: 10px !important; font-weight: 600 !important; margin-left: 6px !important; }
+        #gfc-app .gfc-badge.champion { background: #FFD700 !important; color: #5D4200 !important; }
+        #gfc-app .gfc-badge.improved { background: #DFF6DD !important; color: #054B05 !important; }
+        #gfc-app .gfc-leaderboard-score { font-size: 20px !important; font-weight: 700 !important; }
+        #gfc-app .gfc-leaderboard-bar { width: 120px !important; height: 8px !important; background: #EDEBE9 !important; border-radius: 4px !important; overflow: hidden !important; }
+        #gfc-app .gfc-leaderboard-bar-fill { height: 100% !important; border-radius: 4px !important; }
+
+        /* --- Buttons --- */
+        #gfc-app .gfc-btn { padding: 8px 20px !important; border-radius: 6px !important; font-weight: 600 !important; font-size: 13px !important; cursor: pointer !important; display: inline-flex !important; align-items: center !important; gap: 6px !important; }
+        #gfc-app .gfc-btn-primary { background: #107C10 !important; color: white !important; }
+        #gfc-app .gfc-btn-primary:hover { background: #054B05 !important; }
+        #gfc-app .gfc-btn-secondary { background: #FFFFFF !important; color: #0078D4 !important; border: 1px solid #0078D4 !important; }
+        #gfc-app .gfc-btn-secondary:hover { background: #DEECF9 !important; }
+
+        /* --- Toggles --- */
+        #gfc-app .gfc-toggle-group { display: inline-flex !important; border: 1px solid #EDEBE9 !important; border-radius: 6px !important; overflow: hidden !important; }
+        #gfc-app .gfc-toggle-btn { padding: 6px 16px !important; background: #FFFFFF !important; font-size: 12px !important; cursor: pointer !important; color: #605E5C !important; }
+        #gfc-app .gfc-toggle-btn.active { background: #107C10 !important; color: white !important; font-weight: 600 !important; }
+
+        /* --- Reports --- */
+        #gfc-app .gfc-report-preview { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important; gap: 16px !important; }
+        #gfc-app .gfc-report-section { padding: 16px !important; border: 1px dashed #EDEBE9 !important; border-radius: 6px !important; text-align: center !important; }
+        #gfc-app .gfc-report-section h4 { font-size: 14px !important; color: #323130 !important; margin-bottom: 8px !important; }
+        #gfc-app .gfc-report-section p { font-size: 12px !important; color: #605E5C !important; }
+
+        /* --- Ace Table --- */
+        #gfc-app .gfc-ace-table { width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; margin-top: 8px !important; }
+        #gfc-app .gfc-ace-table th { background: #054B05 !important; color: white !important; padding: 6px 8px !important; text-align: left !important; font-size: 11px !important; }
+        #gfc-app .gfc-ace-table td { padding: 5px 8px !important; border-bottom: 1px solid #EDEBE9 !important; }
+
+        /* --- Breakdown --- */
+        #gfc-app .gfc-breakdown { display: none !important; }
+        #gfc-app .gfc-breakdown.open { display: table-row !important; }
+        #gfc-app .gfc-breakdown-bar { display: flex !important; align-items: center !important; gap: 8px !important; margin-bottom: 8px !important; }
+        #gfc-app .gfc-breakdown-label { font-size: 12px !important; width: 140px !important; color: #605E5C !important; }
+        #gfc-app .gfc-breakdown-track { flex: 1 !important; height: 8px !important; background: #EDEBE9 !important; border-radius: 4px !important; overflow: hidden !important; }
+        #gfc-app .gfc-breakdown-fill { height: 100% !important; border-radius: 4px !important; background: #107C10 !important; }
+        #gfc-app .gfc-breakdown-pts { font-size: 12px !important; font-weight: 600 !important; width: 40px !important; text-align: right !important; }
+
+        /* --- Misc --- */
+        #gfc-app .gfc-empty { text-align: center !important; padding: 60px 24px !important; color: #605E5C !important; }
+        #gfc-app .gfc-empty-icon { font-size: 48px !important; margin-bottom: 16px !important; }
 
         @media (max-width: 900px) {
-            .gfc-chart-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .gfc-doughnut-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .gfc-arrow {
-                transform: rotate(90deg);
-            }
+            #gfc-app .gfc-chart-grid { grid-template-columns: 1fr !important; }
+            #gfc-app .gfc-doughnut-grid { grid-template-columns: 1fr !important; }
+            #gfc-app .gfc-arrow { transform: rotate(90deg) !important; }
         }
     </style>
 </head>
