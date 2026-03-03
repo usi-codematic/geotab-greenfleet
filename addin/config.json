@@ -4,12 +4,12 @@
   "version": "1.0.0",
   "items": [
     {
-      "url": "greenfleet-commander.html",
+      "url": "https://usi-codematic.github.io/geotab-greenfleet/addin/greenfleet-commander.html",
       "path": "ActivityLink/",
       "menuName": {
         "en": "GreenFleet Commander"
       },
-      "icon": "assets/icon.svg"
+      "icon": "https://usi-codematic.github.io/geotab-greenfleet/addin/assets/icon.svg"
     }
   ]
 }
