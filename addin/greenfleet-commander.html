@@ -287,12 +287,12 @@
 
     <!-- Tab Navigation -->
     <div class="gfc-tabs" id="gfc-tabs">
-        <button class="gfc-tab active" data-tab="dashboard"><span class="gfc-tab-icon">&#x1F4CA;</span> Dashboard</button>
-        <button class="gfc-tab" data-tab="simulator"><span class="gfc-tab-icon">&#x26A1;</span> Simulator</button>
-        <button class="gfc-tab" data-tab="leaderboard"><span class="gfc-tab-icon">&#x1F3C6;</span> Leaderboard</button>
-        <button class="gfc-tab" data-tab="assistant"><span class="gfc-tab-icon">&#x1F916;</span> AI Assistant</button>
-        <button class="gfc-tab" data-tab="map"><span class="gfc-tab-icon">&#x1F5FA;</span> Fleet Map</button>
-        <button class="gfc-tab" data-tab="reports"><span class="gfc-tab-icon">&#x1F4C4;</span> Reports</button>
+        <button class="gfc-tab active" data-tab="dashboard" onclick="GFC.switchTab('dashboard')"><span class="gfc-tab-icon">&#x1F4CA;</span> Dashboard</button>
+        <button class="gfc-tab" data-tab="simulator" onclick="GFC.switchTab('simulator')"><span class="gfc-tab-icon">&#x26A1;</span> Simulator</button>
+        <button class="gfc-tab" data-tab="leaderboard" onclick="GFC.switchTab('leaderboard')"><span class="gfc-tab-icon">&#x1F3C6;</span> Leaderboard</button>
+        <button class="gfc-tab" data-tab="assistant" onclick="GFC.switchTab('assistant')"><span class="gfc-tab-icon">&#x1F916;</span> AI Assistant</button>
+        <button class="gfc-tab" data-tab="map" onclick="GFC.switchTab('map')"><span class="gfc-tab-icon">&#x1F5FA;</span> Fleet Map</button>
+        <button class="gfc-tab" data-tab="reports" onclick="GFC.switchTab('reports')"><span class="gfc-tab-icon">&#x1F4C4;</span> Reports</button>
     </div>
 
     <!-- Content -->
@@ -413,10 +413,10 @@
             <div class="gfc-card" style="padding:0;overflow:hidden;">
                 <div class="gfc-chat">
                     <div class="gfc-chat-quick">
-                        <button class="gfc-quick-btn" data-query="Which vehicles should I replace with EVs first and why?">EV Recommendations</button>
-                        <button class="gfc-quick-btn" data-query="What are the top 5 vehicles by fuel consumption this month?">Top Fuel Consumers</button>
-                        <button class="gfc-quick-btn" data-query="Show me safety incidents and exception events from the past week">Safety Incidents</button>
-                        <button class="gfc-quick-btn" data-query="What is the fleet's overall efficiency trend this month compared to last month?">Efficiency Trend</button>
+                        <button class="gfc-quick-btn" onclick="GFC.sendAceQuery('Which vehicles should I replace with EVs first and why?')">EV Recommendations</button>
+                        <button class="gfc-quick-btn" onclick="GFC.sendAceQuery('What are the top 5 vehicles by fuel consumption this month?')">Top Fuel Consumers</button>
+                        <button class="gfc-quick-btn" onclick="GFC.sendAceQuery('Show me safety incidents and exception events from the past week')">Safety Incidents</button>
+                        <button class="gfc-quick-btn" onclick="GFC.sendAceQuery('What is the fleet\'s overall efficiency trend this month compared to last month?')">Efficiency Trend</button>
                     </div>
                     <div class="gfc-chat-messages" id="chat-messages">
                         <div class="gfc-msg system">Ask Geotab Ace any question about your fleet's sustainability, efficiency, or safety.</div>
@@ -955,15 +955,20 @@
     }
 
     // --- Tabs ---
+    function switchTab(tabName) {
+        document.querySelectorAll('.gfc-tab').forEach(function(t){t.classList.remove('active');});
+        document.querySelectorAll('.gfc-tab-panel').forEach(function(p){p.classList.remove('active');});
+        var btn = document.querySelector('.gfc-tab[data-tab="'+tabName+'"]');
+        if(btn) btn.classList.add('active');
+        var panel = document.getElementById('panel-'+tabName);
+        if(panel) panel.classList.add('active');
+        if(tabName==='map') setTimeout(initMap,100);
+    }
+
     function initTabs() {
         document.querySelectorAll('.gfc-tab').forEach(function(tab){
             tab.addEventListener('click',function(){
-                var t=this.getAttribute('data-tab');
-                document.querySelectorAll('.gfc-tab').forEach(function(t){t.classList.remove('active');});
-                document.querySelectorAll('.gfc-tab-panel').forEach(function(p){p.classList.remove('active');});
-                this.classList.add('active');
-                document.getElementById('panel-'+t).classList.add('active');
-                if(t==='map') setTimeout(initMap,100);
+                switchTab(this.getAttribute('data-tab'));
             });
         });
         document.querySelectorAll('.gfc-quick-btn').forEach(function(b){b.addEventListener('click',function(){sendAceQuery(this.getAttribute('data-query'));});});
@@ -991,7 +996,7 @@
         };
     };
 
-    window.GFC = { sendAceQuery: sendAceQuery, generateReport: generateReport };
+    window.GFC = { switchTab: switchTab, sendAceQuery: sendAceQuery, generateReport: generateReport };
 
     // Fallback: if initialize() hasn't fired after 3s, init tabs anyway
     var _tabsReady = false;
