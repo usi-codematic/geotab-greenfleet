@@ -72,7 +72,7 @@
         "url": "={{ $env.SLACK_WEBHOOK_URL }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ text: '🚨 *GreenFleet Speed Alert*\\n' + $json.result.filter(t => t.speedRange > 20).slice(0,5).map(t => `Vehicle ${t.device?.id}: Max speed exceeded during trip (${(t.distance/1000).toFixed(1)} km trip)`).join('\\n') || 'No speeding events detected in last 15 minutes.' }) }}"
+        "jsonBody": "={{ JSON.stringify({ text: '🚨 *GreenFleet Speed Alert*\\n' + $json.result.filter(t => t.speedRange > 20).slice(0,5).map(t => `Vehicle ${t.device?.id}: Max speed exceeded during trip (${(t.distance).toFixed(1)} km trip)`).join('\\n') || 'No speeding events detected in last 15 minutes.' }) }}"
       },
       "id": "slack-alert",
       "name": "Send Slack Alert",

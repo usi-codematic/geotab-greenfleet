@@ -490,7 +490,12 @@
     function parseDuration(dur) {
         if (!dur) return 0;
         if (typeof dur === 'number') return dur;
-        var m = String(dur).match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/);
+        var s = String(dur);
+        // Handle HH:MM:SS or HH:MM:SS.fraction format (Geotab standard)
+        var hms = s.match(/^(\d+):(\d+):(\d+(?:\.\d+)?)$/);
+        if (hms) return ((parseInt(hms[1])||0)*3600 + (parseInt(hms[2])||0)*60 + (parseFloat(hms[3])||0))*1000;
+        // Fallback: ISO 8601 PT format
+        var m = s.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?/);
         if (!m) return 0;
         return ((parseInt(m[1])||0)*3600 + (parseInt(m[2])||0)*60 + (parseFloat(m[3])||0))*1000;
     }
@@ -554,16 +559,16 @@
         });
         state.vehicleData = state.devices.map(function(dev) {
             var trips = dt[dev.id]||[];
-            var totalM=0, idleMs=0, driveMs=0, daily={}, tripDists=[];
+            var totalKm=0, idleMs=0, driveMs=0, daily={}, tripDists=[];
             trips.forEach(function(t) {
-                var d=t.distance||0; totalM+=d;
+                var d=t.distance||0; totalKm+=d;
                 idleMs+=parseDuration(t.idlingDuration);
                 driveMs+=parseDuration(t.drivingDuration);
                 var dk=(t.start||t.startTime||'').substring(0,10);
-                if(dk) daily[dk]=(daily[dk]||0)+d/1000;
-                tripDists.push(d/1000);
+                if(dk) daily[dk]=(daily[dk]||0)+d;
+                tripDists.push(d);
             });
-            var km=totalM/1000, days=Object.keys(daily), nd=Math.max(days.length,1);
+            var km=totalKm, days=Object.keys(daily), nd=Math.max(days.length,1);
             var avgD=km/nd, maxD=days.length>0?Math.max.apply(null,days.map(function(d){return daily[d];})):0;
             var totalMs=idleMs+driveMs, idlePct=totalMs>0?(idleMs/totalMs)*100:0;
             var tpd=trips.length/nd;
@@ -628,7 +633,7 @@
         var daily={};
         state.trips.forEach(function(t) {
             var dk=(t.start||t.startTime||'').substring(0,10); if(!dk) return;
-            var km=(t.distance||0)/1000;
+            var km=t.distance||0;
             daily[dk]=(daily[dk]||0)+km*AVG_FUEL_L_PER_KM*EMISSION_FACTOR;
         });
         var keys=Object.keys(daily).sort();
