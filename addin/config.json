@@ -1,0 +1,15 @@
+{
+  "name": "GreenFleet Commander",
+  "supportEmail": "https://github.com/greenfleet-commander",
+  "version": "1.0.0",
+  "items": [
+    {
+      "url": "greenfleet-commander.html",
+      "path": "ActivityLink/",
+      "menuName": {
+        "en": "GreenFleet Commander"
+      },
+      "icon": "assets/icon.svg"
+    }
+  ]
+}
