@@ -1,0 +1,96 @@
+{
+  "name": "GreenFleet - Idle Time Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 1 }]
+        }
+      },
+      "id": "schedule-hourly",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{ $env.GEOTAB_SERVER || 'my.geotab.com' }}/apiv1",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ method: 'Authenticate', params: { database: $env.GEOTAB_DATABASE, userName: $env.GEOTAB_USERNAME, password: $env.GEOTAB_PASSWORD } }) }}"
+      },
+      "id": "auth",
+      "name": "Geotab Auth",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{ $env.GEOTAB_SERVER || 'my.geotab.com' }}/apiv1",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ method: 'Get', params: { typeName: 'Trip', search: { fromDate: new Date(Date.now() - 60*60*1000).toISOString(), toDate: new Date().toISOString() }, credentials: $json.result.credentials } }) }}"
+      },
+      "id": "get-trips",
+      "name": "Get Hourly Trips",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const trips = $input.first().json.result || [];\nconst idleVehicles = [];\nfor (const trip of trips) {\n  const idle = trip.idlingDuration || 'PT0S';\n  const match = idle.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+(?:\\.\\d+)?)S)?/);\n  if (match) {\n    const mins = (parseInt(match[1]||0)*60) + parseInt(match[2]||0) + parseFloat(match[3]||0)/60;\n    if (mins > 30) {\n      idleVehicles.push({ device: trip.device?.id, idleMinutes: Math.round(mins), distance: (trip.distance/1000).toFixed(1) });\n    }\n  }\n}\nreturn [{ json: { idleVehicles, count: idleVehicles.length } }];"
+      },
+      "id": "filter-idle",
+      "name": "Filter High Idle",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.count }}",
+              "rightValue": "0",
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ]
+        }
+      },
+      "id": "has-idle",
+      "name": "Any Idle?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: '⚠️ *GreenFleet Idle Alert*\\n' + $json.count + ' vehicles exceeded 30 min idle time in the last hour.\\n' + $json.idleVehicles.slice(0,5).map(v => `• Vehicle ${v.device}: ${v.idleMinutes} min idle (${v.distance} km trip)`).join('\\n') }) }}"
+      },
+      "id": "slack-idle",
+      "name": "Slack Idle Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1350, 200]
+    }
+  ],
+  "connections": {
+    "Every Hour": { "main": [[{ "node": "Geotab Auth", "type": "main", "index": 0 }]] },
+    "Geotab Auth": { "main": [[{ "node": "Get Hourly Trips", "type": "main", "index": 0 }]] },
+    "Get Hourly Trips": { "main": [[{ "node": "Filter High Idle", "type": "main", "index": 0 }]] },
+    "Filter High Idle": { "main": [[{ "node": "Any Idle?", "type": "main", "index": 0 }]] },
+    "Any Idle?": { "main": [[{ "node": "Slack Idle Alert", "type": "main", "index": 0 }], []] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "GreenFleet Commander" }]
+}

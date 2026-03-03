@@ -1,0 +1,77 @@
+{
+  "name": "GreenFleet - Weekly Sustainability Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 9 * * 1" }]
+        }
+      },
+      "id": "weekly-trigger",
+      "name": "Monday 9 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{ $env.GEOTAB_SERVER || 'my.geotab.com' }}/apiv1",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ method: 'Authenticate', params: { database: $env.GEOTAB_DATABASE, userName: $env.GEOTAB_USERNAME, password: $env.GEOTAB_PASSWORD } }) }}"
+      },
+      "id": "auth",
+      "name": "Geotab Auth",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{ $env.GEOTAB_SERVER || 'my.geotab.com' }}/apiv1",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ method: 'Get', params: { typeName: 'Trip', search: { fromDate: new Date(Date.now() - 7*24*60*60*1000).toISOString(), toDate: new Date().toISOString() }, credentials: $json.result.credentials } }) }}"
+      },
+      "id": "get-week-trips",
+      "name": "Get Week Trips",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const trips = $input.first().json.result || [];\nlet totalDist = 0, totalIdle = 0, totalDrive = 0, tripCount = trips.length;\n\nfor (const t of trips) {\n  totalDist += (t.distance || 0) / 1000;\n  const idleMatch = (t.idlingDuration || '').match(/PT(?:(\\d+)H)?(?:(\\d+)M)?/);\n  if (idleMatch) totalIdle += (parseInt(idleMatch[1]||0)*60 + parseInt(idleMatch[2]||0));\n  const driveMatch = (t.drivingDuration || '').match(/PT(?:(\\d+)H)?(?:(\\d+)M)?/);\n  if (driveMatch) totalDrive += (parseInt(driveMatch[1]||0)*60 + parseInt(driveMatch[2]||0));\n}\n\nconst estFuel = totalDist * 0.12;\nconst estCO2 = estFuel * 2.5 / 1000;\nconst idlePct = (totalIdle + totalDrive) > 0 ? (totalIdle / (totalIdle + totalDrive) * 100).toFixed(1) : '0';\n\nreturn [{ json: {\n  trips: tripCount,\n  distKm: Math.round(totalDist),\n  estCO2Tonnes: estCO2.toFixed(2),\n  estFuelL: Math.round(estFuel),\n  idlePct,\n  idleMinutes: totalIdle\n}}];"
+      },
+      "id": "calc-stats",
+      "name": "Calculate Stats",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ blocks: [{ type: 'header', text: { type: 'plain_text', text: '📊 GreenFleet Weekly Sustainability Digest' }}, { type: 'section', text: { type: 'mrkdwn', text: `*Week of ${new Date().toLocaleDateString()}*\\n\\n🚗 *${$json.trips}* trips completed\\n📏 *${$json.distKm.toLocaleString()}* km driven\\n⛽ *${$json.estFuelL.toLocaleString()}* L fuel (estimated)\\n🌍 *${$json.estCO2Tonnes}* tonnes CO2\\n⏱️ *${$json.idlePct}%* idle time ratio\\n\\n💡 _Reduce idle time to cut emissions. Consider EV conversion for short-route vehicles._` }}] }) }}"
+      },
+      "id": "slack-digest",
+      "name": "Post Weekly Digest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1130, 300]
+    }
+  ],
+  "connections": {
+    "Monday 9 AM": { "main": [[{ "node": "Geotab Auth", "type": "main", "index": 0 }]] },
+    "Geotab Auth": { "main": [[{ "node": "Get Week Trips", "type": "main", "index": 0 }]] },
+    "Get Week Trips": { "main": [[{ "node": "Calculate Stats", "type": "main", "index": 0 }]] },
+    "Calculate Stats": { "main": [[{ "node": "Post Weekly Digest", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "GreenFleet Commander" }]
+}
